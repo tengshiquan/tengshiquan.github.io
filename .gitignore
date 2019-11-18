@@ -1,4 +1,5 @@
 _site
+.jekyll-cache
 _posts/_draft
 _posts/_archive
 _archive
