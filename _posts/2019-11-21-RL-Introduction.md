@@ -1,10 +1,10 @@
 ---
 layout:     post
-title:      读书笔记 Reinforcement Learning
-subtitle:   Personal Note On "Reinforcement Learning&#58; An Introduction"
+title:      读书笔记 <强化学习导论>
+subtitle:   Personal Note on "Reinforcement Learning&#58; An Introduction"
 date:       2019-01-01 12:00:00
 author:     "tengshiquan"
-header-img: "img/post-rl-sutton.jpg"
+header-img: "img/post-rl-suttonjpg"
 catalog: true
 tags:
     - AI
@@ -15,7 +15,7 @@ tags:
 
 
 
-# Note On Reinforcement Learning
+# Note on Reinforcement Learning
 
 有点零碎, 待有空了整理汇总一下
 
@@ -512,8 +512,7 @@ $$
 
 下面两个bellman optimal 都有 max_a，关键是递推关系
 
-**Bellman optimality equation  for $v_*$ **  s之后选最大s‘
-
+Bellman optimality equation  for $v_*$   s之后选最大s‘
 $$
 v_*(s) = \max_{a \in \mathcal A(s)} q_{\pi_*}(s,a) 
 \\ = \max_a \mathbb E[R_{t+1} + \gamma v_*(S_{t+1}) | S_t=s,A_t =a]
@@ -524,7 +523,7 @@ state value under an optimal policy must equal the expected return for the best 
 
 
 
-**Bellman optimality equation  for $q_*$ ** 选a之后最大是 再选最优a'  只有这里是QQ
+Bellman optimality equation  for $q_*$  选a之后最大是 再选最优a'  只有这里是QQ
 
 $$
 q_*(s,a) = \mathbb E \Big[R_{t+1} + \gamma \max_{a'} q_*(S_{t+1},a') \Big|S_t=s,A_t =a  \Big]

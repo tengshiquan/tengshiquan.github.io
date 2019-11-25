@@ -1,158 +1,265 @@
 ---
 layout:     post
-title:      Gradient Descent Optimizers
+title:      梯度下降算法 Gradient Descent Optimizers
 subtitle:   An overview of gradient descent optimization algorithms
 date:       2019-01-01 12:00:00
 author:     "tengshiquan"
 header-img: "img/post-gd.jpg"
 catalog: true
 tags:
-    - git
+    - gradient descent
+    - mathine learning
+    - neural network
+    - deep learning
+    - Optimizer
 ---
-
-
 
 
 
 # Gradient Descent Optimizers
 
-https://mlfromscratch.com/optimizers-explained/#/
+整理一下梯度优化算法
 
-[Why Momentum Really Works](https://distill.pub/2017/momentum/).
-
-http://cs231n.github.io/neural-networks-3/ 有代码实现
-
-
-
-## The objective of Machine Learning algorithm
-
-
-
-**主要是一阶的梯度法，包括SGD, Momentum, Nesterov Momentum, AdaGrad, RMSProp, Adam**
+**主要的一阶梯度算法，包括SGD, Momentum, Nesterov Momentum, AdaGrad, RMSProp, Adam**
 
 手动指定学习速率: SGD,Momentum,Nesterov Momentum
 
 自动调节学习速率: AdaGrad, RMSProp, Adam
 
+二阶方法, 如牛顿法, 在实践中, 在高纬度数据集上计算不可行.
 
 
 
+## Gradient descent variants
 
-## Stochastic Gradient Descent
+#### Batch gradient descent
 
-in BGD, we have to calculate the cost for all training examples in the dataset.  Exactly this is the motivation behind SGD.
-
-The equation for SGD is used to update parameters in a neural network – we use the equation to update parameters in a backwards pass, using backpropagation to calculate the gradient $\nabla$:
 $$
-\theta = \theta - \eta \cdot 
-    \overbrace{\nabla_\theta J(\theta; \, x, \, y)}^{\text{Backpropagation}}
+\theta = \theta - \eta \cdot \nabla_\theta J( \theta)
 $$
+
+```python
+for i in range(nb_epochs):
+  params_grad = evaluate_gradient(loss_function, data, params)
+  params = params - learning_rate * params_grad
+```
+
+**优点:**
+
+- cost fuction若为凸函数，能够保证收敛到全局最优值；若为非凸函数，能够收敛到局部最优值
+
+**缺点:**
+
+- 由于每轮迭代都需要在整个数据集上计算一次，所以批量梯度下降可能非常慢
+- 训练数较多时，需要较大内存
+- 批量梯度下降不允许在线更新模型，例如新增实例。 update model *online*
+
+
+
+#### Stochastic gradient descent
+
+Stochastic gradient descent (SGD) in contrast performs a parameter update for *each* training example.算法每读入一个数据，便立刻计算cost fuction的梯度来更新参数：
+
+$$
+\theta = \theta - \eta \cdot \nabla_\theta J( \theta; x^{(i)}; y^{(i)})
+$$
+
+```python
+for i in range(nb_epochs):
+  np.random.shuffle(data)
+  for example in data:
+    params_grad = evaluate_gradient(loss_function, example, params)
+    params = params - learning_rate * params_grad
+```
+
+当慢慢减小 learning rate时，SGD 和 BGD 的收敛性是一样的。
+
+**优点:**
+
+- 算法收敛速度快(在Batch Gradient Descent算法中, 每轮会计算很多相似样本的梯度, 这部分是冗余的)
+- 可以在线更新
+- 有几率跳出一个比较差的局部最优而收敛到一个更好的局部最优甚至是全局最优 keep overshooting
+
+**缺点:**
+
+- 容易收敛到局部最优，并且容易被困在鞍点
+- SGD 因为更新比较频繁, 方差大(每次更新可能并不会按照正确的方向进行, 不稳)，会造成 cost function 有严重的震荡. 
+
+
+
+<img src="/img/Optimizer.assets/sgd_fluctuation.png" alt="img" style="zoom: 50%;" />
+
+
+
+![https://datascience-enthusiast.com/figures/kiank_sgd.png](/img/Optimizer.assets/kiank_sgd.png)
+
+这个图的等高线是基于所有数据生成的. batchGD是在每个点都向着该点梯度最大的方向下降; SGD可能是随机游走,  也可能开倒车. **random walk** 
+
+
+
+#### Mini-batch gradient descent
+
+对每个minibatch执行
+
+
+$$
+\theta = \theta - \eta \cdot \nabla_\theta J( \theta; x^{(i:i+n)}; y^{(i:i+n)})
+$$
+
+```python
+for i in range(nb_epochs):
+  np.random.shuffle(data)
+  for batch in get_batches(data, batch_size=50):
+    params_grad = evaluate_gradient(loss_function, batch, params)
+    params = params - learning_rate * params_grad
+```
+
+优点:
+
+- 可以降低参数更新时的方差，收敛更稳定，
+- 另一方面可以充分地利用深度学习库中高度优化的矩阵操作来进行更有效的梯度计算。
+
+
+
+![https://datascience-enthusiast.com/figures/kiank_minibatch.png](/img/Optimizer.assets/kiank_minibatch.png)
+
+Common mini-batch sizes range between 50 and 256
+
+现在深度学习中的SGD，一般指的就是mini-batch gradient descent
+
+
+
+### Challenges
+
+Vanilla mini-batch gradient descent , 并不能保证良好的收敛性, 同时有其他一些问题:
+
+- 选择一个合理的学习速率很难。如果学习速率过小，则会导致收敛速度很慢。如果学习速率过大，可能在极值点附近振荡或者发散. 
+- Learning rate schedules 试图在训练中改变学习速率，如退火, 先设定大一点的学习率然后按照预定的策略来减小lr, 或者当两次迭代之间的变化低于某个阈值后，就减小 learning rate. 无论策略或者阈值，都需要事先定义，因而无法适应数据集的特点. 
+- 对所有的参数每次更新都是使用相同的学习率。如果数据特征是稀疏的或者每个特征有着不同的频率，那么我们可能并不想以同一个大小的学习率来更新全部参数, 希望能对那些很少出现的特征应该使用一个相对较大的学习率
+- 对于非凸目标函数，容易陷入那些次优的局部极值点, 鞍点. 
+
 
 
 ## Momentum
 
-### Motivation for momentum
+从山上往下滚球, 如果没有惯性的话, 可以视为球每到一个地方都是静止的, 然后从那个点的梯度进行下降, 所以很容易就陷入一些小坑,即局部最小值. 而加上了惯性以后, 可以视为球有速度, 可以冲破一些比较小的坑; 表现上, 在斜率比较小的长斜坡的方向上,得以加速, 并可能越过一些小坑; 在坡度很陡的山谷, 可以减小来回的震荡
+
+直观上讲就是，要是当前时刻的梯度与历史时刻梯度方向相似，这种趋势在当前时刻则会加强；要是不同，则当前时刻的梯度方向减弱。 **类似滚动的小球，增加的惯性可以起到更平滑和加速的作用，抑制振荡并使我们穿过狭窄的山谷，小驼峰和局部极小。**
+
+SGD有个问题,就是每次迭代计算的梯度含有比较大的噪音. 而Momentum方法可以比较好的缓解这个问题,尤其是**在面对小而连续的梯度但是含有很多噪声的时候,可以很好的加速学习**.
+
+**特点:** 
+前后梯度方向一致时,能够加速学习 
+前后梯度方向不一致时,能够抑制震荡
 
 
 
-<img src="Optimizer.assets/ball-1.gif" alt="When optimizing the cost function for a weight, we might imagine a ball rolling down a hill amongst many hills. We hope that we get to some form of optimum." style="zoom:50%;" />
+![img](/img/Optimizer.assets/20180516112034267.png)
 
-<img src="Optimizer.assets/image-17.png" alt="Ball stuck on a hilly 2D curve. " style="zoom: 25%;" />
+<img src="/img/Optimizer.assets/momentum.gif" alt="img" style="zoom: 25%;" />
 
-In the above case, we are stuck at a local minimum, and the motivation is clear –  we need a method to handle these situations, perhaps to never get stuck in the first place.
+<img src="/img/Optimizer.assets/no-momentum.gif" alt="img" style="zoom:25%;" />
 
-
-
-### Explanation of momentum
-
-在SGD基础上扩展,  加个动量,以及相关的权重; 
-
-参数 $\gamma$ called the momentum
-
-动量用的是参数改变的增量, Last change (last update) to θ is called  $v_t$. 上次参数的增量
-
-由**当前梯度**以及**上次的增量(动量, 惯性)**两部分加权组成
-
-This time element increases the momentum of the ball by some amount. This amount is called gamma γ, which is usually initialized to 0.9. But we also multiply that by the **previous update** $v_t$.
-$$
-\theta_t = \theta_{t} - \eta\nabla J(\theta_{t}) + \gamma v_{t}
-$$
-
-
-> Theta $\theta$ at time step t equals $\theta_t$ minus the learning rate, times the gradient of the objective function J with respect to the parameter $\theta_t$, plus a momentum term gamma $\gamma$, times the change to $\theta$ at the **last time** step t-1.
-
-### Momentum Term
-
-要让球滚下来滚的快, 需要惯性, 积累速度  accumulates more speed for each epoch
-
-下面公式右边漏了 $\gamma$ 
-$$
-v_{t} = \eta\nabla J(\theta_{t-1}) + v_{t-1}
-$$
-summation  这个公式有点问题, 看个大概意思就行
-$$
-\theta_t = \theta_{t} - \eta\nabla J(\theta_{t}) + \gamma \sum_{\tau=1}^{t}
-    \eta\nabla J(\theta_{\tau})
-$$
-<img src="Optimizer.assets/momentum.gif" alt="img" style="zoom: 25%;" />![img](Optimizer.assets/no-momentum.gif)
-
-<img src="https://mlfromscratch.com/content/images/2019/10/no-momentum.gif" alt="img" style="zoom:25%;" />
-
-
-
-### Different Notation: A second explanation
-
-the Delta symbol $Δ$ to indicate change:
-
-这里 $\rho$是动量,   这个公式比较好
-$$
-\Delta w_t = \epsilon \nabla E(w) + \rho \Delta w_{t-1}
-$$
-改成上面的notation
-$$
-\Delta \theta_t = \eta \nabla J(\theta_t) + \gamma \Delta \theta_{t-1}
-$$
+把上一把参数的该变量作为v , 乘以 Momentum
 
 $$
-\theta_t = \theta_t - \Delta \theta_t
+\begin{align} 
+\begin{split} 
+v_t &= \gamma v_{t-1} + \eta \nabla_\theta J( \theta) \\ 
+\theta &= \theta - v_t 
+\end{split} 
+\end{align}
+$$
+
+动量项$\gamma$ 一般选0.9 
+
+```python
+# Momentum update
+v = gamma * v + learning_rate * grad(x) # integrate velocity
+x -= v
+```
+
+
+
+如果每次迭代得到的梯度都是g, 那么最后得到的v的稳定值为 $\frac{\eta \cdot g }{1-\gamma}$ , 也就是说,Momentum最好情况下能够将学习率加速为$\frac{1}{1-\gamma}$ 倍.一般 $\gamma$  的取值有0.5,0.9,0.99这几种
+
+
+
+## Nesterov accelerated gradient NAG
+
+从山顶往下滚的球只会身不由己地前进. 更好的方式应该是在遇到倾斜向上之前应该减慢速度。这样可能就不会把之前积攒的速度冲进上面的一个局部最小.  
+
+根据公式, 并不看当前点的梯度, 而是看当前点按照之前的动量趋势前进的位置的梯度, 位置上提前了一些
+$$
+\begin{align} 
+\begin{split} 
+v_t &= \gamma v_{t-1} + \eta \nabla_\theta J( \theta_t - \gamma v_{t-1} ) \\ 
+\theta_{t+1} &= \theta_t - v_t 
+\end{split} 
+\end{align}
 $$
 
 
 
-### pros and cons
+![](/img/Optimizer.assets/nesterov.jpeg)
 
-缺点: 如果动量太大, 很可能在一个局部最小点边缘一直来回波动
+主要是防止 overshoot 
 
+<img src="/img/Optimizer.assets/pAwIf.png" alt="CM vs NAG example" style="zoom:67%;" />
 
+下图解释为什么
 
-## Adam
-
-**Adaptive Moment Estimation (Adam)**
-
-Adam uses **Momentum** and **Adaptive Learning Rates** to converge faster.
+<img src="/img/Optimizer.assets/1*6MEi74EMyPERHlAX-x2Slw.png" alt="img" style="zoom:70%;" />
 
 
 
-![Animation of how the newer optimizers compare in terms of convergence.](Optimizer.assets/saddle.gif)
+```python
+x_ahead = x - gamma * v
+# evaluate dx_ahead (the gradient at x_ahead instead of at x)
+v = gamma * v + learning_rate * grad(x_ahead)
+x -= v
+```
 
 
 
-### Adaptive Learning Rate
+参考 https://zhuanlan.zhihu.com/p/22810533, 可以推导为 
+
+$$
+\begin{align} 
+\begin{split} 
+v_t &= \gamma v_{t-1} + \eta \nabla_\theta J( \theta ) + \gamma  \eta[\nabla J(\theta) - \nabla J(\theta_{t-1}) ] \\ 
+\theta &= \theta - v_t 
+\end{split} 
+\end{align}
+$$
+
+直观含义就很明显了：如果这次的梯度比上次的梯度变大了，那么有理由相信它会继续变大下去，那我就把预计要增大的部分提前加进来；如果相比上次变小了，也是类似的情况。**所以NAG本质上是多考虑了目标函数的二阶导信息，怪不得可以加速收敛了！其实所谓“往前看”的说法，在牛顿法这样的二阶方法中也是经常提到的，比喻起来是说“往前看”，数学本质上则是利用了目标函数的二阶导信息。**
+
+
+
+
+
+# Adaptive Learning Rate
 
 An adaptive learning rate can be observed in AdaGrad, AdaDelta, RMSprop and Adam.
 
-AdaDelta has the same update rule as RMSprop.
-
-The adaptive learning rate property is also known as **Learning Rate Schedules**
-
-Part of the intuition for adaptive learning rates, is that we start off with big steps and finish with small steps – almost like mini-golf. 学习率先大后小
 
 
+## Adagrad 自适应梯度算法
 
-#### AdaGrad: Parameters Gets Different Learning Rates
+基本思想是 对每个参数用不同的学习率.  学习率在一开始比较大，用于快速梯度下降。随着优化过程的进行，对于已经下降很多的参数，则减缓学习率，对于还没怎么下降的变量，则保持一个较大的学习率.
 
-Adaptive Gradients (AdaGrad) provides us with a simple approach, for **changing the learning rate over time**. This is important for adapting to the differences in datasets, since we can get small or large updates, according to how the learning rate is defined.
+非常适合处理稀疏数据
 
+算法, 全局学习率逐参数的除以历史梯度平方和的平方根. 
+
+对SGD,  对i个参数, 在t时刻, 更新公式
+
+$$
+\theta_{t+1, i} = \theta_{t, i} - \eta \cdot g_{t, i}
+$$
+
+Adagrad对每一个参数使用不同的学习速率
 
 $$
 \theta_{t+1,i} = \theta_{t,i}
@@ -167,125 +274,69 @@ $$
     } \nabla J(\theta_{t,i})
 $$
 
+ $\epsilon$是一个平滑参数，为了使得分母不为0 .  另外如果分母不开根号，算法性能会很糟糕。
 
 
 
+```python
+def adagrad(model, X_train, y_train, minibatch_size):
+    cache = {k: np.zeros_like(v) for k, v in model.items()}
+
+    minibatches = get_minibatch(X_train, y_train, minibatch_size)
+
+    for iter in range(1, n_iter + 1):
+        idx = np.random.randint(0, len(minibatches))
+        X_mini, y_mini = minibatches[idx]
+
+        grad = get_minibatch_grad(model, X_mini, y_mini)
+
+        for k in grad:
+            cache[k] += grad[k]**2
+            model[k] += alpha * grad[k] / (np.sqrt(cache[k]) + eps)
+
+    return model
+```
 
 
 
+Adagrad主要优势在于它能够为每个参数自适应不同的学习速率，一般的人工都是设定为0.01。
+Adagrad的缺点是在训练的中后期，分母上梯度平方的累加将会越来越大，从而梯度趋近于0，使得训练提前结束。 经验表明，在普通算法中也许效果不错，但在深度学习中，深度过深时会造成训练提前结束。
 
 
 
+## Adadelta
 
+Adadelta是对Adagrad的改进，主要是为了克服Adagrad的两个缺点
 
+- 其学习率是单调递减的，训练后期学习率非常小
+- 其需要手工设置一个全局的初始学习率
 
-
-### Momentum
-
-
-
-![](https://cdn-images-1.medium.com/max/1600/1*hJSLxZMjYVzgF5A_MoqeVQ.jpeg)
-
-
-
-上面的SGD有个问题,就是每次迭代计算的梯度含有比较大的噪音. 而Momentum方法可以比较好的缓解这个问题,尤其是**在面对小而连续的梯度但是含有很多噪声的时候,可以很好的加速学习**.Momentum借用了物理中的动量概念,即前几次的梯度也会参与运算.为了表示动量,引入了一个新的变量v(velocity).v是之前的梯度的累加,但是每回合都有一定的衰减.
-
-直观上讲就是，要是当前时刻的梯度与历史时刻梯度方向相似，这种趋势在当前时刻则会加强；要是不同，则当前时刻的梯度方向减弱。 **类似滚动的小球，增加的惯性可以起到更平滑和加速的作用，抑制振荡并使我们穿过狭窄的山谷，小驼峰和局部极小。**
-
-
-
-**具体实现:** 
-
-需要:**学习速率 ϵ, 初始参数 θ, 初始速率v, 动量衰减参数α** 
-
-每步迭代过程: 
-$$
-\begin{align}
-& \hat g \leftarrow +\frac{1}{m}\nabla_\theta \sum_i L(f(x_i;\theta),y_i)\\
-& v\leftarrow\alpha v-\epsilon\hat g \\
-& \theta\leftarrow\theta+v
-\end{align}
-$$
-其中参数α表示每回合速率v的衰减程度.同时也可以推断得到,如果每次迭代得到的梯度都是g,那么最后得到的v的稳定值为
-$$
-\frac{\epsilon\lVert g\rVert}{1-\alpha}
-$$
-也就是说,Momentum最好情况下能够将学习速率加速$\frac{1}{1-\alpha}$ 倍.一般 α  的取值有0.5,0.9,0.99这几种.当然,也可以让 α  的值随着时间而变化,一开始小点,后来再加大.不过这样一来,又会引进新的参数.
-
-**特点:** 
-前后梯度方向一致时,能够加速学习 
-前后梯度方向不一致时,能够抑制震荡
-
-
-
-### Nesterov Momentum
-
- 从山顶往下滚的球会盲目地选择斜坡。更好的方式应该是在遇到倾斜向上之前应该减慢速度。
-
-这是对之前的Momentum的一种改进,大概思路就是,先对参数进行估计,然后使用估计后的参数来计算误差
-
-**具体实现:** 
-需要:**学习速率 ϵ, 初始参数 θ, 初始速率v, 动量衰减参数α** 
-每步迭代过程: 
-
-1. 从训练集中的随机抽取一批容量为m的样本$\left\{ x_1,\ldots,x_m \right\}$,以及相关的输出$y_i$ 
-2. 计算梯度和误差,并更新速度v和参数θ
+为了解决第一个问题，Adadelta只累积过去 w 窗口大小的梯度; 同时为了避免低效地存储过去w个梯度和, 使用了 **running average** ,当前均值只与历史均值以及当前值有关:
 
 $$
-\begin{align}
-& \hat g \leftarrow +\frac{1}{m}\nabla_\theta \sum_i L(f(x_i;\theta+\alpha v),y_i)\\
-& v\leftarrow\alpha v-\epsilon\hat g \\
-& \theta\leftarrow\theta+v
-\end{align}
+E[g^2]_t = \gamma E[g^2]_{t-1} + (1 - \gamma) g^2_t
 $$
 
-注意  在估算 $\hat g$  的时候,参数变成了$\theta+\alpha v$
+$\gamma$ 类似momentum term, around 0.9. 
+
+$$
+\Delta \theta_t = - \dfrac{\eta}{\sqrt{E[g^2]_t + \epsilon}} g_{t}
+$$
 
 
 
 
 
-神经网络研究员早就意识到学习率肯定是难以设置的超参数之一，因为它对模型的性能有显著的影响。 损失通常高度敏感于参数空间中的某些方向，而不敏感于其他。动量算法可以在一定程度缓解这 些问题，但这样做的代价是引入了另一个超参数。 
 
 
 
-### AdaGrad  适应性梯度算法
-
-简单来讲，设置全局学习率之后，每次通过 全局学习率逐参数的除以历史梯度平方和的平方根，使得每个参数的学习率不同 . 基本思想是对每个变量用不同的学习率，这个学习率在一开始比较大，用于快速梯度下降。随着优化过程的进行，对于已经下降很多的变量，则减缓学习率，对于还没怎么下降的变量，则保持一个较大的学习率
-
-1. 简单来讲，设置全局学习率之后，每次通过，全局学习率逐参数的除以历史梯度平方和的平方根，使得每个参数的学习率不同 
-2. 效果是：在参数空间更为平缓的方向，会取得更大的进步（因为平缓，所以历史梯度平方和较小，对应学习下降的幅度较小） 
-3. 缺点是,使得学习率过早，过量的减少
-4. 在某些模型上效果不错。
-
- 
-
-**具体实现:**  
-
-需要:**全局学习速率 ϵ, 初始参数 θ, 数值稳定量δ**  
-
-中间变量: 梯度累计量r(初始化为0)  
-
-每步迭代过程: 
-
-> 取m个样本，计算 $y_i$
->
-> 计算梯度:  $\hat g \leftarrow +\frac{1}{m}\nabla_\theta \sum_i L(f(x_i;\theta),y_i)$
->
-> 累积平方梯度: $r\leftarrow r+\hat g\odot \hat g$
->
-> $\triangle \theta = -\frac{\epsilon}{\delta+\sqrt{r}}\odot \hat g$	
->
-> $\theta\leftarrow\theta+\triangle \theta$
 
 
 
-**优点:** 
-能够实现学习率的自动更改。如果这次梯度大,那么学习速率衰减的就快一些;如果这次梯度小,那么学习速率衰减的就慢一些。
 
-**缺点:** 
-任然要设置一个变量ϵ
-经验表明，在普通算法中也许效果不错，但在深度学习中，深度过深时会造成训练提前结束。
+
+
+
 
  
 
@@ -303,9 +354,11 @@ RMSProp通过引入一个衰减系数，让r每回合都衰减一定比例，类
 
 
 
+## Adam
 
+**Adaptive Moment Estimation (Adam)**
 
-### Adam
+Adam uses **Momentum** and **Adaptive Learning Rates** to converge faster.
 
 随机梯度下降保持单一的学习率更新所有的权重，学习率在训练过程中并不会改变。而 Adam 通过计算梯度的一阶矩估计和二阶矩估计而为不同的参数设计独立的自适应性学习率。
 
@@ -321,6 +374,24 @@ Adam 算法同时获得了 AdaGrad 和 RMSProp 算法的优点。
 
 
 
+
+![Animation of how the newer optimizers compare in terms of convergence.](/img/Optimizer.assets/saddle.gif)
+
+
+
+
+
+# References
+
+An overview of gradient descent optimization algorithms https://ruder.io/optimizing-gradient-descent/
+
+Momentum-Based & Nesterov Accelerated Gradient Descent https://towardsdatascience.com/learning-parameters-part-2-a190bef2d12
+
+[Why Momentum Really Works] https://distill.pub/2017/momentum/  特效不错
+
+http://cs231n.github.io/neural-networks-3/ 
+
+https://blog.csdn.net/u012328159/article/details/80311892
 
 
 
