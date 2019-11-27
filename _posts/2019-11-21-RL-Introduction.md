@@ -2,7 +2,7 @@
 layout:     post
 title:      读书笔记 <强化学习导论>
 subtitle:   Personal Note on "Reinforcement Learning&#58; An Introduction"
-date:       2019-01-01 12:00:00
+date:       2019-11-21 12:00:00
 author:     "tengshiquan"
 header-img: "img/post-rl-suttonjpg"
 catalog: true
@@ -73,7 +73,7 @@ V(s) : 未来奖励和的期望，predictions of rewards ;长期  long-term desi
 
 所有强化学习算法中最为重要的组件就是高效地对值进行估计 estimating 的方法. “估值处于核心地位”  
 
-棋感， 手感， 路感。。。
+[^_^]: 棋感， 手感， 路感。。。
 
 **model** : 模型用于模仿环境的反应, 其能够**推断**出环境将会做出怎样的反应.   model-free 即不知道在s执行a有什么反应，即不知道r以及走到的具体状态s'，即不知道MDP的dynamics， 必须实际去sample一下才知道
 
