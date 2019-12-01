@@ -483,6 +483,45 @@ $$
 
 
 
+Momentum通过对梯度mean的估计，使得梯度在**纵向上的正负步长逐步抵消，横向上的步长逐步累积**，从而减少了震荡，加快了学习速率。可以认为：**对于mean的这种估计，其实是从噪音中提取到了有效信号，因为信号的方向在一段时间内是不会变的。同时抵消了噪音，比如白噪音，它的均值为0，把多个白噪音累加后，它们是正负相互抵消的**当然实际情况噪音可能会非常复杂，如果步长太大，或者衰减太小，还是会出现震荡甚至发散的情况。
+
+对于波动比较大的梯度，它的方差肯定是很大的，所以它用梯度去除以二阶距的开方，作为梯度下降的梯度，从而也使得它在纵轴上的步长减小了，同时相对的增加了横轴的步长. 
+
+这个也是mt和vt的设计来源。同时因为mt和vt涉及了所有历史梯度信息，所以他们都能较好处理梯度稀疏的情况。
+
+随机变量的一阶矩和二阶矩。模型的梯度是一个随机变量，一阶矩表示梯度均值，二阶矩表示其方差，一阶矩来控制模型更新的方向，二阶矩控制步长(学习率)。用moveing average来对一阶矩和二阶矩进行估计。bias correct是为了缓解初始一阶矩和二阶矩初始为0带来的moving average的影响。
+
+目的是提高sgd的稳定性。假设gradient为随机变量D，这个算法本质就是使得optimizing variables向着**mean(D)/std(D)**移动。那么问题就是怎么估计mean(D)跟std(D)这两个expectation。Adam用的办法就是normalized moving average。就是你有一个sequence d1, d2,d3,.....都是D的sample，由$x_i = \beta *(x_{i-1}) +(1 - \beta ) * d_i$ ，得到 $E(X_t)/(1- \beta^t))=E(D)$.  $std(D)=E(D^2)$同理。这种ema的应用在统计里是非常非常常用的smoothing technique了 (from 知乎)
+
+
+正是由于采用了**m/sqrt(v)**的形式，梯度本身的大小被消除了，假设你在目标函数上乘以k，那么这个k会同时出现在分子分母上，从而在梯度更新时被消除了。
+
+根据原文作者的意思，在机器学习中，我们经常可以方便的获知最优参数所处的范围，从而据此设置alpha的取值大小，所以Adam的这种特性可以方便你设置alpha。
+
+**根据我们在Momentum和RMSProp中的描述，m/sqrt(v)可以看做是对梯度“信噪比”（SNR）的估计，其中m是信号量，而v是噪音量。当噪音大时，步长小；噪音小时，步长大。这正是我们需要的特性，从而使得Adam能够较好的处理噪音样本，另外，当我们接近最优点时，噪音通常会变得很大，或者说真正的信号变得很微弱，信噪比通常会接近0，这样步长就会变得较小，从而天然起到退火效果(annealing)**
+
+
+
+##### INITIALIZATION BIAS CORRECTION
+
+$$
+v_t = (1 - \beta_2) \sum_{i=1}^t \beta_2^{t-i} \cdot g_i^2
+$$
+
+$$
+\begin{align}
+\mathbb E[v_t] &= \mathbb E \Big [ (1 - \beta_2) \sum_{i=1}^t \beta_2^{t-i} \cdot g_i^2 \Big]
+\\  &= \mathbb E[g_t^2] \cdot (1 - \beta_2) \sum_{i=1}^t \beta_2^{t-i} + \zeta
+\\ &= \mathbb E[g_t^2] \cdot (1 - \beta_2^t) + \zeta
+\end{align}
+$$
+
+
+
+
+
+![image-20191129170421175](/img/Optimizer.assets/image-20191129170421175.png)
+
 ```python
 def adam(model, X_train, y_train, minibatch_size):
     M = {k: np.zeros_like(v) for k, v in model.items()}
@@ -527,27 +566,123 @@ x += - learning_rate * mt / (np.sqrt(vt) + eps)
 
 
 
+当取$\beta_1 =0$ , $\beta_2$ 取一个非常接近1的值的时候 ,  然后 $ \alpha$ 为一个退火的版本$\alpha_t = \alpha \cdot t^{-1/2}$,  这时可以看出 adagrad是adam的一个特例.
+
+
+
 ### AdaMax
+
+在 Adam 中，$v_t$ 的更新规则:  
+
+$$
+v_t = \beta_2 v_{t-1} + (1 - \beta_2) |g_t|^2
+$$
+
+可以将基于 $\ell_2$范数的更新规则泛化到基于$\ell_p$范数的更新规则, 同时改系数$\beta_2$为$\beta_2^p$
+
+$$
+v_t = \beta_2^p v_{t-1} + (1 - \beta_2^p) |g_t|^p 
+\\ = (1- \beta^p_2) \sum_{i=1}^t \beta_2^{p(t-i)} \cdot |g|^p
+$$
+
+虽然这样的变体会因为 p 的值较大而在数值上变得不稳定，这也是为什么$\ell_1$和$\ell_2$范数在实践中最常用. 但是$\ell_\infty$ 却通常表现为极端稳定, 因此, 作者提出adamax.  引入$u_t= \lim_{p \to \infty}(v_t)^{1/p}$ 来代替之前的 $\sqrt{\hat{v}_t} + \epsilon$
+
+$$
+\begin{align} 
+u_t &= \lim_{p \to \infty} \Big( (1- \beta^p_2) \sum_{i=1}^t \beta_2^{p(t-i)} \cdot |g|^p \Big)^{1/p}
+\\ & = \lim_{p \to \infty} \Big( (1- \beta^p_2) \sum_{i=1}^t \beta_2^{p(t-i)} \cdot |g|^p \Big)^{1/p}
+\\ & = \lim_{p \to \infty} (1- \beta^p_2)^{1/p} \Big(  \sum_{i=1}^t \beta_2^{p(t-i)} \cdot |g|^p \Big)^{1/p}
+\\ & = \lim_{p \to \infty} \Big(  \sum_{i=1}^t \beta_2^{p(t-i)} \cdot |g|^p \Big)^{1/p}
+\\ & = \max(\beta_2^{t-1}|g_1|, \beta_2^{t-2}|g_2|, \dots, \beta_2^{t-1}|g_{t-1}|, |g_t|) 
+\\ & = \max(\beta_2 \cdot u_{t-1}, |g_t|) 
+\end{align}
+$$
+
+此方法对学习率的上限提供了一个更简单的范围 $\mid \Delta t \mid \leq \alpha$
+
+![image-20191129163631762](/img/Optimizer.assets/image-20191129163631762.png)
 
 
 
 ### Nadam
 
+Nadam = NAG + Adam
+
+之前的NAG为
+
+$$
+\begin{align} 
+\begin{split} 
+g_t &= \nabla_{\theta_t}J(\theta_t - \gamma m_{t-1})\\ 
+m_t &= \gamma m_{t-1} + \eta g_t\\ 
+\theta_{t+1} &= \theta_t - m_t 
+\end{split} 
+\end{align}
+$$
+
+下面不再利用两次动量更新, 改为直接用 look-ahead的动量来更新当前参数, 利用mt来look ahead. 
+
+$$
+\begin{align} 
+\begin{split} 
+g_t &= \nabla_{\theta_t}J(\theta_t)\\ 
+m_t &= \gamma m_{t-1} + \eta g_t\\ 
+\theta_{t+1} &= \theta_t - (\gamma m_t + \eta g_t) 
+\end{split} 
+\end{align}
+$$
+
+
+
+下面修改adam的mt更新公式
+
+
+
+可以看出，Nadam对学习率有了更强的约束，同时对梯度的更新也有更直接的影响。一般而言，在想使用带动量的RMSprop，或者Adam的地方，大多可以使用Nadam取得更好的效果。
+
 
 
 ### AMSGrad
 
+自适应学习算法已经成为标准, 但仍然有些情况无法收敛: 物体识别以及机器翻译. 可能还不如SGDwith momentum.
+
+作者指出 梯度平方的指数加权移动平均 是adaptive方法方法比较差的原因. 引入exponential average的原因是为了解决adagrad方法的学习率最后会消失的问题,但是只使用过去一小段时间梯度(short-term memory)的情况在某些问题中变成了一个问题.
+
+使用Adam算法会有一种情况, 有些minibatch提供了一个很大的, 有信息量的梯度, 但这些minibatch出现的几率很小, exponential average减小了这些梯度的影响, 最后造成了较差的收敛性. 作者提供了一个简单的凸优化的例子. 
+
+为了解决这个问题, 作者提出了AMSGrad算法. 使用过去平方梯度$v_t$的最大值, 而不是指数加权. 
+
+$$
+\hat{v}_t = \text{max}(\hat{v}_{t-1}, v_t)
+$$
+
+然后, AMSGrad会造成step size不会增加, 从而避免了Adam的问题.  为了简单, 去掉了Adam的偏差修正部分, 最终更新公式如下:
+
+$$
+\begin{align} 
+\begin{split} 
+m_t &= \beta_1 m_{t-1} + (1 - \beta_1) g_t \\ 
+v_t &= \beta_2 v_{t-1} + (1 - \beta_2) g_t^2\\ 
+\hat{v}_t &= \text{max}(\hat{v}_{t-1}, v_t) \\ 
+\theta_{t+1} &= \theta_{t} - \dfrac{\eta}{\sqrt{\hat{v}_t} + \epsilon} m_t 
+\end{split} 
+\end{align}
+$$
+
+AMSGrad在某些问题上的表现会不如Adam算法. 
 
 
 
+
+
+
+## 总结
 
 <img src="/img/Optimizer.assets/opt2.gif" alt="img" style="zoom: 67%;" />
 
 <img src="/img/Optimizer.assets/opt1.gif" alt="img" style="zoom: 67%;" />
 
 
-
-## 总结
 
 - 对于稀疏数据，尽量使用学习率自适应的优化方法，即 Adagrad, Adadelta, RMSprop, Adam, 不用手动调节，而且最好采用默认值
 - 最近很多论文都是使用原始的SGD梯度下降算法，并且使用简单的学习速率退火调整（无动量项）. SGD通常训练时间更长，容易陷入鞍点，但是在好的初始化和学习率调度方案的情况下，结果更可靠
@@ -556,6 +691,58 @@ x += - learning_rate * mt / (np.sqrt(vt) + eps)
 - 在想使用带动量的RMSprop，或者Adam的地方，大多可以使用Nadam取得更好的效果
 - 其实还有很多方面会影响梯度下降算法，如梯度的消失与爆炸，梯度下降算法目前无法保证全局收敛还将是一个持续性的数学难题。
 - Adam略优于RMSprop，因为其在接近收敛时梯度变得更加稀疏。整体来讲，Adam 是最好的选择。
+
+
+
+### 其他的SGD优化策略
+
+- Shuffling and Curriculum Learning
+
+  为了使得学习过程更加无偏，应该在每次迭代中随机打乱训练集中的样本。
+  另一方面，在很多情况下，我们是逐步解决问题的，而将训练集按照某个有意义的顺序排列会提高模型的性能和SGD的收敛性，如何将训练集建立一个有意义的排列被称为 Curriculum Learning 
+
+- Batch normalization
+  
+  为了方便训练，我们通常会对参数按照0均值1方差进行初始化，随着不断训练，参数得到不同程度的更新，这样这些参数会失去0均值1方差的分布属性，这样会降低训练速度和放大参数变化随着网络结构的加深。
+  Batch normalization在每次mini-batch反向传播之后重新对参数进行0均值1方差标准化。这样可以使用更大的学习速率，以及花费更少的精力在参数初始化点上。Batch normalization充当着正则化、减少甚至消除掉Dropout的必要性。
+
+- Early stopping
+  
+  在验证集上如果连续的多次迭代过程中损失函数不再显著地降低，那么应该提前结束训练
+
+- Gradient noise
+  
+  即在每次迭代计算梯度中加上一个高斯分布$N(0, \sigma^2_t)$的随机误差，即
+
+  $$
+  g_{t, i} = g_{t, i} + N(0, \sigma^2_t)
+  $$
+
+  再将高斯误差的方差进行退火：
+
+  $$
+  \sigma^2_t = \dfrac{\eta}{(1 + t)^\gamma}
+  $$
+
+   对梯度增加随机误差会增加模型的鲁棒性，即使初始参数值选择地不好，并适合对特别深层次的负责的网络进行训练。其原因在于增加随机噪声会有更多的可能性跳过局部极值点并去寻找一个更好的局部极值点，这种可能性在深层次的网络中更常见。
+
+
+
+
+
+## Parallelizing and distributing SGD 分布式SGD
+
+如果你处理的数据集非常大，并且有机器集群可以利用，那么并行或分布式SGD是一个非常好的选择，因为可以大大地提高速度。SGD算法的本质决定其是串行的(step-by-step)。因此如何进行异步处理便是一个问题。虽然串行能够保证收敛，但是如果训练集大，速度便是一个瓶颈。如果进行异步更新，那么可能会导致不收敛。下面将讨论如何进行并行或分布式SGD，并行一般是指在同一机器上进行多核并行，分布式是指集群处理。
+
+- Hogwild
+  
+- Downpour SGD
+  
+- Delay-tolerant Algorithms for SGD
+  
+- TensorFlow
+  
+- Elastic Averaging SGD
 
 
 
@@ -577,9 +764,13 @@ https://blog.csdn.net/u012328159/article/details/80311892
 
 https://blog.csdn.net/u010899985/article/details/81836299
 
+https://blog.csdn.net/heyongluoyao8/article/details/52478715
+
 https://www.cnblogs.com/neopenx/p/4768388.html adadelta
 
 https://zhuanlan.zhihu.com/p/22252270
 
 http://louistiao.me/notes/visualizing-and-animating-optimization-algorithms-with-matplotlib/ 
+
+https://segmentfault.com/a/1190000012668819?utm_source=tag-newest
 
