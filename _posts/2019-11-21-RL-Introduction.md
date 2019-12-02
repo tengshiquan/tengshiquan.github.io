@@ -4,7 +4,7 @@ title:      读书笔记 <强化学习导论>
 subtitle:   Personal Note on "Reinforcement Learning&#58; An Introduction"
 date:       2019-11-21 12:00:00
 author:     "tengshiquan"
-header-img: "img/post-rl-suttonjpg"
+header-img: "img/post-rl-sutton.jpg"
 catalog: true
 tags:
     - AI
