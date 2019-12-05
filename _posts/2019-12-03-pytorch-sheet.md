@@ -14,9 +14,9 @@ tags:
 
 # CheatSheet of PYTorch
 
+
+
 Source: https://www.sznajdman.com/pytorch-cheat-sheet/
-
-
 
 <img src="/img/2019-12-03-pytorch-sheet.assets/pytorch-cheat.jpg" alt="img" style="zoom:120%;" />
 
