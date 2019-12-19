@@ -20,11 +20,15 @@ tags:
 
 整理一下梯度优化算法
 
-**主要的一阶梯度算法，包括SGD, Momentum, Nesterov Momentum, AdaGrad, RMSProp, Adam**
+**主要的一阶梯度算法，包括SGD, Momentum, NAG, RMSProp, Adam**
 
-手动指定学习速率: SGD,Momentum,Nesterov Momentum
+学习速率恒定的: SGD,Momentum,NAG
 
-自动调节学习速率: AdaGrad, RMSProp, Adam
+学习速率自适应的: AdaGrad, RMSProp, Adam
+
+核心思想: **Running average**
+
+
 
 二阶方法如牛顿法, 实践中计算代价太高，不适合大数据。
 
@@ -207,7 +211,9 @@ def momentum(model, X_train, y_train, minibatch_size):
 
 从山顶往下滚的球只会身不由己地前进. 更好的方式应该是在遇到倾斜向上之前应该减慢速度。这样可能就不会把之前积攒的速度冲进上面的一个局部最小.  
 
-根据公式, 并不看当前点的梯度, 而是看当前点按照之前的动量趋势前进的位置的梯度, 位置上提前了一些
+核心: **利用之前动量目标点的梯度**
+
+根据公式, 并不看当前点的梯度, 而是看当前点按照之前的动量趋势前进的位置(之前动量目标点)的梯度, 位置上提前了一些
 
 $$
 \begin{align} 
@@ -281,6 +287,10 @@ $$
 
 An adaptive learning rate can be observed in AdaGrad, AdaDelta, RMSprop and Adam.
 
+并不是lr逐步变小,而是save a **running averag**e of the gradients for each parameter (not a LR!), 然后作为lr的分母
+
+mean(D)/std(D)
+
 
 
 ### Adagrad 自适应梯度算法
@@ -338,11 +348,13 @@ def adagrad(model, X_train, y_train, minibatch_size):
 
 
 Adagrad主要优势在于它能够为每个参数自适应不同的学习速率，一般的人工都是设定为0.01。
-Adagrad的缺点是在训练的中后期，分母上梯度平方的累加将会越来越大，从而梯度趋近于0，使得训练提前结束。 经验表明，在普通算法中也许效果不错，但在深度学习中，深度过深时会造成训练提前结束。
+Adagrad的缺点是在训练的中后期，分母上梯度平方的累加将会越来越大，从而梯度趋近于0，使得训练提前结束。 经验表明，在普通算法中也许效果不错，但在深度学习中，深度过深时会造成**训练提前结束**。
 
 
 
 ### Adadelta
+
+特点, 不再需要学习率
 
 Adadelta是对Adagrad的改进，主要是为了克服Adagrad的两个缺点
 
@@ -351,7 +363,7 @@ Adadelta是对Adagrad的改进，主要是为了克服Adagrad的两个缺点
 
 ##### Idea1: Accumulate Over Window 
 
-Adadelta只累积过去 w 窗口大小的梯度; 同时为了避免低效地存储过去w个梯度和, 使用了 **running average** ,当前均值只与历史均值以及当前值有关, **数加权平均（Exponentially weighted average, exponentially decaying average）**:
+Adadelta只**累积过去 w 窗口大小的梯度**; 同时为了避免低效地存储过去w个梯度和, 使用了 **running average** ,当前均值只与历史均值以及当前值有关, **数加权平均（Exponentially weighted average, exponentially decaying average）**:
 
 $$
 E[g^2]_t = \gamma E[g^2]_{t-1} + (1 - \gamma) g^2_t
@@ -363,7 +375,7 @@ $$
 \Delta \theta_t = - \dfrac{\eta}{\sqrt{E[g^2]_t + \epsilon}} g_{t}
 $$
 
-分母可以看成 root mean squared (RMS)
+分母可以看成 **root mean squared (RMS)**
 
 $$
 \Delta \theta_t = - \dfrac{\eta}{RMS[g]_{t}} g_t
@@ -451,7 +463,7 @@ def rmsprop(model, X_train, y_train, minibatch_size):
 
 Adam uses **Momentum** and **Adaptive Learning Rates** to converge faster.
 
-Adam 就是在 RMSprop 的基础上加了 bias-correction 和 momentum，
+Adam 就是在 RMSprop 的基础上加了 **bias-correction** 和 momentum，
 
 Adam 像RMSprop一样使用指数衰减的加权平方梯度$v_t$,  同时像momentum一样,使用指数衰减的加权梯度$m_t$
 
@@ -462,7 +474,7 @@ v_t &= \beta_2 v_{t-1} + (1 - \beta_2) g_t^2
 \end{align}
 $$
 
-$m_t$与$v_t$分别是梯度的加权和带权有偏方差，初始为0的向量. Adam的作者发现他们偏向于逼近0向量, 特别是在刚开始的时间步内, 还有特别是在衰减因子比较小的时候(如$\beta_1$,$\beta_2$接近于1). 为了改进这个问题, 对$ m_t$与$v_t$进行偏差修正(bias-corrected)：
+$m_t$与$v_t$分别是梯度的加权和带权有偏方差，初始为0的向量. Adam的作者发现他们偏向于逼近0向量, 特别是在刚开始的时间步内, 还有特别是在衰减因子比较小的时候(如$\beta_1$,$\beta_2$接近于1). 为了改进这个问题, 对$ m_t$与$v_t$进行偏差修正(**bias-corrected**)：
 
 $$
 \begin{align} 
@@ -483,13 +495,13 @@ $$
 
 
 
-Momentum通过对梯度mean的估计，使得梯度在**纵向上的正负步长逐步抵消，横向上的步长逐步累积**，从而减少了震荡，加快了学习速率。可以认为：**对于mean的这种估计，其实是从噪音中提取到了有效信号，因为信号的方向在一段时间内是不会变的。同时抵消了噪音，比如白噪音，它的均值为0，把多个白噪音累加后，它们是正负相互抵消的**当然实际情况噪音可能会非常复杂，如果步长太大，或者衰减太小，还是会出现震荡甚至发散的情况。
+Momentum通过对梯度mean的估计，使得梯度在纵向上的正负步长逐步抵消，横向上的步长逐步累积，从而减少了震荡，加快了学习速率。可以认为：**对于mean的这种估计，其实是从噪音中提取到了有效信号，因为信号的方向在一段时间内是不会变的。同时抵消了噪音，比如白噪音，它的均值为0，把多个白噪音累加后，它们是正负相互抵消的**当然实际情况噪音可能会非常复杂，如果步长太大，或者衰减太小，还是会出现震荡甚至发散的情况。
 
 对于波动比较大的梯度，它的方差肯定是很大的，所以它用梯度去除以二阶距的开方，作为梯度下降的梯度，从而也使得它在纵轴上的步长减小了，同时相对的增加了横轴的步长. 
 
 这个也是mt和vt的设计来源。同时因为mt和vt涉及了所有历史梯度信息，所以他们都能较好处理梯度稀疏的情况。
 
-随机变量的一阶矩和二阶矩。模型的梯度是一个随机变量，一阶矩表示梯度均值，二阶矩表示其方差，一阶矩来控制模型更新的方向，二阶矩控制步长(学习率)。用moveing average来对一阶矩和二阶矩进行估计。bias correct是为了缓解初始一阶矩和二阶矩初始为0带来的moving average的影响。
+<mark>随机变量的**一阶矩**和**二阶矩**。模型的梯度是一个随机变量，**一阶矩表示梯度均值，二阶矩表示其方差，一阶矩来控制模型更新的方向，二阶矩控制步长(学习率)。**用moveing average来对一阶矩和二阶矩进行估计。bias correct是为了缓解初始一阶矩和二阶矩初始为0带来的moving average的影响。</mark>
 
 目的是提高sgd的稳定性。假设gradient为随机变量D，这个算法本质就是使得optimizing variables向着**mean(D)/std(D)**移动。那么问题就是怎么估计mean(D)跟std(D)这两个expectation。Adam用的办法就是normalized moving average。就是你有一个sequence d1, d2,d3,.....都是D的sample，由$x_i = \beta *(x_{i-1}) +(1 - \beta ) * d_i$ ，得到 $E(X_t)/(1- \beta^t))=E(D)$.  $std(D)=E(D^2)$同理。这种ema的应用在统计里是非常非常常用的smoothing technique了 (from 知乎)
 

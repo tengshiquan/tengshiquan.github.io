@@ -1,3 +1,7 @@
 > 一个老程序员, 最近捣鼓捣鼓算法
 
 强化学习领域的小白
+
+
+
+Email: tengshiquan@gmail.com
