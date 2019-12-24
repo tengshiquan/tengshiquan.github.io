@@ -1566,7 +1566,6 @@ $$
 TD(0) : $R_{t+1} + \gamma V(S_{t+1})$
 
 **one-step return**: first reward plus the discounted estimated value of the next state
-
 $$
 G_{t:t+1} \doteq R_{t+1} + \gamma V_t(S_{t+1})
 $$
@@ -2087,7 +2086,8 @@ Planning 在进行决策时也需要重点关注一些states,如在采样中会�
 
 Consequently, when a single state is updated, the change generalizes from that state to affect the values of many other states. Such **generalization** makes the learning potentially more powerful but also potentially more dicult to manage and understand.  泛化
 
-？？ 将function approximate 用于强化学习可以解决部分可观测问题（即有部分state 是agent 无法获得的）如果近似函数不容许依靠部分state来评估，则只要视这部分state为无法观测的 ; function approximate 不可以用于基于过去观测来扩展state的问题，在第17章重点讨论
+将function approximate 用于强化学习可以解决部分可观测问题(partially observable problems)（即有部分state 是agent 无法获得的）
+function approximate 无法用于 state的维度逐渐增加的情况，在第17章重点讨论
 
 
 
@@ -2102,11 +2102,9 @@ Consequently, when a single state is updated, the change generalizes from that s
 
 
 
-其中 $s\mapsto u$ 表示，在状态 s 下对应的**update target** 为 u。这种更新方式可以看做对value function的一个 desired input-output behavior，即希望state s的估计值（estimated value）接近update target u。其中，value 表中 s的估计值很容易趋近于 u，而其他states的估计值不会发生变化。可以看成是 input-function-output
+其中 $s\mapsto u$ 表示，在状态 s 下对应的**update target** 为 u。显然, value function的目标就是输入s, 输出u。如果利用表格法, 则 value 表中 s的估计值很容易趋近于 u，同时其他states的估计值不会发生变化。改变s状态的估值，其他所有状态不受影响这种方式虽然精确，对某些大规模问题效率极低，没有利用上泛化！
 
-改变s状态的估值，其他所有状态不受影响这种方式虽然精确，对某些大规模问题效率极低，没有利用上泛化！
-
-现在允许采用一种更复杂的更新方式，即在s 上的估计值更新会牵扯到其他states 的估计值更新。这种update target可以类比与机器学习中的标签，这种数据有标签的机器学习方法称为监督学习（supervised learning)。 when the outputs are numbers, like u, the process is often called function approximation。函数拟合 s->u的映射。我们传给拟合函数$s\mapsto g$   这样的训练样本。?? g代表啥??    因此监督学习的方法可以用于强化学习中的value prediction 问题
+下面采用一种更复杂的更新方式，即在s 上的估计值更新会牵扯到其他states 的估计值更新。这种update target可以类比与机器学习中的标签，这种数据有标签的机器学习方法称为**监督学习（supervised learning)**。 when the outputs are numbers, like u, the process is often called **function approximation**。 **函数拟合** s->数值u的映射。我们传给拟合函数$s\mapsto g$   这样的训练样本。因此监督学习的方法可以用于强化学习中的value prediction 问题
 
 但大部分监督学习方法都是假设用于训练的数据集（training set）是静态的  stationary，即大小是固定的，但对于强化学习问题，其涉及到与环境不断交互，产生新的state，这需要function approximate 的方法可以有效的从递增的训练集中在线学习。另外，强化学习的target function有时候会不断改变，如在control问题中，GPI 过程需要学习当$Policy  \pi$ 改变时的 $q_\pi$。即使Policy保持不变，由bootstrapping（步步为营）方法（如TD或DP）生成的target values也是非静态的。如果某些方法不能很轻松的处理非静态问题，就不太适合用于强化学习问题。
 
@@ -2114,7 +2112,9 @@ Consequently, when a single state is updated, the change generalizes from that s
 
 #### The Prediction Objective (VE)
 
-模型本身的上限就是该解决方案的上限了，因为模型的拟合还会有误差
+[^_^]: 模型本身的上限就是该方法的上限了，因为模型的拟合还会有误差
+
+目标函数
 
 迄今为止，我们没有一个用于明确表示Prediction 问题的指标。在tabular（表格化） 问题中，因为学习得到的value function就直接等于真实的value function，因此不需要明确prediction 的质量。另外，表格化问题中的一个state的value更新不会影响其他state的value更新。但在运用function approximation 后，一个state的value 更新会影响其他很多states 的value值，这样我们不可能获得每个state 的values的真实值。假设有足够多的state ，数目多于权重数目，对一个state的准确估计意味着牺牲其他 state 的value估计精度。
 
@@ -2145,13 +2145,17 @@ $$
 
 it is not completely clear that the VE is the right performance objective for reinforcement learning。 VE 作为评估函数是否在强化学习中是合适的还没有定论。
 
-prediction的目标为最小化均方根误差$\overline {VE}$，即找到一个全局最优，使得存在$ \mathbf w *$ 对所有 \mathbf w 有 $\overline {VE}（ \mathbf w *) \leq \overline {VE}(\mathbf w)$。线性函数通常可以找到这个全局最优解，但人工神经网络或决策树通常很难找到全局最优解，这些复杂的function approximation 方法通常会陷入局部最优，但对强化学习问题而言，有局部最优比无解强，这也是可以接受的。
+prediction的目标为最小化均方根误差$\overline {VE}$，即找到一个全局最优，使得存在$ \mathbf w^*$ 对所有 $\mathbf w$ 有 $\overline {VE}（ \mathbf w^*) \leq \overline {VE}(\mathbf w)$。线性函数通常可以找到这个全局最优解，但人工神经网络或决策树通常很难找到全局最优解，这些复杂的function approximation 方法通常会陷入局部最优，但对强化学习问题而言，有局部最优比无解强，这也是可以接受的。
 
 接下来，我们将分别介绍一些简单的泛化方法，在介绍这些函数逼近之前，我们先介绍一下无论使用何种函数逼近都会涉及的求解方法：随机梯度下降（stochastic-gradient descent,SGD)和Semi-gradient方法。
 
  
 
 #### Stochastic-gradient and Semi-gradient Methods
+
+##### SGD
+
+拟合函数 $\hat v(s,\mathbf w)$ 是 w的可导函数
 
 随机梯度下降法（SGD），该方法常用于 function approximation中，对RL问题也十分适用。
 
@@ -2160,12 +2164,18 @@ $$
 \\ = \mathbf w_t + \alpha  \Big[ v_\pi (S_t) - \hat v(S_t,\mathbf w_t) \Big] \nabla \hat v(S_t,\mathbf w_t)
 $$
 
+**这个公式能成立的关键是 $v_\pi (S_t)$ 独立于w, 与w无关**
+
+下面是标量函数的f 对参数w的向量展开, This derivative vector is the gradient of f with respect to w.
 $$
 \nabla f(\mathbf w) \doteq \Big(\frac{\partial f(\mathbf w)}{\partial w_1},...,\frac{\partial f(\mathbf w)}{\partial w_d}  \Big)^{\top }
 $$
 
-$U_t$ 为估计值，不是真值， 得看是不是无偏估计
+In fact, the convergence results for SGD methods assume that $\alpha$ decreases over time. If it decreases in such a way as to satisfy the standard stochastic approximation conditions (2.7), then the SGD method (9.5) is guaranteed to **converge to a local optimum**.   $\alpha$ 按条件递减, SGD保证收敛到局部最优 
 
+
+
+下面讨论拟合的target,  $U_t$ 为估计值，不是真值v(s)的情况,  得看 $U_t$ 是不是无偏估计
 $$
 \mathbf w_{t+1} \doteq  \mathbf w_t + \alpha  \Big[ U_t - \hat v(S_t,\mathbf w_t) \Big] \nabla \hat v(S_t,\mathbf w_t)
 $$
@@ -2174,24 +2184,22 @@ $$
 
 如果 $U_t$是一个无偏估计，即$E[U_t\mid S_t = s] = v_\pi(S_t)$，那么在$\alpha$递减情况下，$\mathbf w_t$最终会收敛到一个局部最优。 
 
-假设这些样例中的states都是agent与环境交互产生，和 Monte Carlo算法中的采样数据一样。那么true value则为这些states value的期望值，因此Monte Carlo算法的target value $U_t = G_t$为$v_\pi(S_t)$的无偏估计，SGD算法用于 Monte carlo的算法伪代码如下图所示： 
+假设这些样例中的states都是agent与环境交互产生，和 Monte Carlo算法中的采样数据一样。那么true value则为这些states value的期望值，因此Monte Carlo target  $U_t \doteq G_t$为$v_\pi(S_t)$的无偏估计，SGD算法用于 Monte carlo的算法伪代码如下图所示： 
 
 ![image-20181228222250792](/img/RL_Introduction.assets/image-20181228222250792.png)
 
 
 
-semi-gradient methods
+##### <mark>semi-gradient methods</mark>
 
-用一个较准的迭代值作为target 
+核心: 用一个bootstrap的迭代值 r+v(s') 作为 target v(s) ;   **biased 有偏估计**
 
-a bootstrapping estimate of $v_\pi(S_t)$ is used as traget $U_t$ , 是 biased 有偏估计
+使用 bootstrap estimate of $ v_\pi(S_t)$ 当作 target $U_t$.  bootstrapping target ，如 $G_{t:t+n}$ 或 DP target , 都依赖当前的参数w，所以是true value 的有偏估计, will not produce a **true gradient-descent method**.   所以这种做法只考虑了 参数w 在值估计上的作用, 而忽略了w对target的影响. 只包含了一部分的梯度 include only a part of the gradient ,  所以称为 **semi-gradient methods**.
 
-当target value由bootstrapping算法，如TD算法提供时，是true value 的有偏估计，这种取代方式，遵循了SGD的形式，但是不能保证权重系数会收敛到一个局部最小值，因此称之为 **semi-gradient decent**算法，当function approximation为线性（linear function）时，可以保证收敛到局部最优，但其他情况不确定。
-
-虽然 semi-gradient （bootstrapping)方法的鲁棒性不如 Gradient 方法，但是他们有如下优点：
+虽然 semi-gradient 方法的收敛性, 不如 Gradient 方法可靠,  但当线性（linear function）拟合时，收敛. 有如下特点：
 
 - 快速收敛性
-- 不需要等到一个episode结束，就可以进行target value更新，可以有效的进行在线连续学习。
+- 不需要等到一个episode结束，就可以进行target value更新，可以在线学习。 continual and online
 
 **semi-gradient TD (0)**  算法伪代码如下： 
 
@@ -2199,7 +2207,19 @@ a bootstrapping estimate of $v_\pi(S_t)$ is used as traget $U_t$ , 是 biased �
 
 
 
-**State aggregation** is a simple form of generalizing function approximation in which states are grouped together, with one estimated value 
+##### **State aggregation** 状态聚合
+
+is a simple form of generalizing function approximation in which states are grouped together, with one estimated value . 把类似的状态放一块, 然后共用一个估计值v. The value of a state is estimated as its group’s component, and when the state is updated, that component alone is updated.
+
+不同于 minibatch SGD, 没关系
+
+Example 9.1 1000 state的 random walk 值函数 estimating
+
+For the state aggregation, the 1000 states were partitioned into 10 groups of 100 states each. 分成10组. 
+
+值得注意是下面的状态分布 , 对最左边的第一个台阶, 是估值线高于真值的. 最右的最后一个台阶,低于真值.  因为最左边台阶, state100比state1出现几率高,所以值估计就偏向state100而不是state1
+
+![image-20191224172830221](/img/RL_Introduction.assets/image-20191224172830221.png)
 
 
 
@@ -2888,7 +2908,7 @@ generalize the degree of bootstrapping and discounting beyond constant parameter
 
 #### Stable Off-policy Methods with Traces
 
-一些使用了资格迹在off-policy的情况下能够保证算法稳定。这里介绍四种在本书介绍的标准概念里最重要的四个算法，包括了通用形式的自举和discounting函数。所有的算法都使用了线性函数逼近，不过对于非线性函数逼近的拓展也可以在论文中找到。
+一些使用了资格迹在off-policy的情况下能够保证算法稳定。这里介绍四种在本书介绍的标准概念里最重要的四个算法，包括了通用形式的bootstrap和discounting函数。所有的算法都使用了线性函数逼近，不过对于非线性函数逼近的拓展也可以在论文中找到。
 
 
 
@@ -2900,9 +2920,9 @@ generalize the degree of bootstrapping and discounting beyond constant parameter
 
 #### Conclusions
 
-资格迹与TD error的结合提供了一个高效增量形式的在MC和TD算法之间转换和选择的方式。第七章介绍的n步算法也能做到，但是资格迹方法更加通用，学习速度更快而且共不同计算复杂度的选择。这一章主要介绍了优雅新兴的资格迹方法的理论解释。这个方法能够用于on-policy和off-policy，也能适应变化的自举和discounting。这个理论的一方面是true online方法，它能够精确复制计算量特别大的理论算法的结果，而且保留了传统TD算法计算的亲和力。另一方面是对于从更易理解的forward-view的方法到更容易计算的backward-view方法的转换推导。
+资格迹与TD error的结合提供了一个高效增量形式的在MC和TD算法之间转换和选择的方式。第七章介绍的n步算法也能做到，但是资格迹方法更加通用，学习速度更快而且共不同计算复杂度的选择。这一章主要介绍了优雅新兴的资格迹方法的理论解释。这个方法能够用于on-policy和off-policy，也能适应变化的bootstrap和discounting。这个理论的一方面是true online方法，它能够精确复制计算量特别大的理论算法的结果，而且保留了传统TD算法计算的亲和力。另一方面是对于从更易理解的forward-view的方法到更容易计算的backward-view方法的转换推导。
 
-第五章提到MC算法可以在非马尔科夫的任务中有优势，因为它不使用自举。因为资格迹方法使得TD算法更像MC算法，因此带资格迹的TD也能够得到这种优势。如果想用TD算法的一些特性而任务又是部分非马尔科夫的，就可以选择使用资格迹形式的TD。
+第五章提到MC算法可以在非马尔科夫的任务中有优势，因为它不使用bootstrap。因为资格迹方法使得TD算法更像MC算法，因此带资格迹的TD也能够得到这种优势。如果想用TD算法的一些特性而任务又是部分非马尔科夫的，就可以选择使用资格迹形式的TD。
 
 通过调整我们可以将资格迹方法放置到MC到一步TD方法之间的任一个位置。对于应该把它放在哪还没有理论解释，但是经验告诉我们对于步骤比较长的任务使用资格迹比不使用效果更好。在两个方法中间的位置取得的效果一般比较好。虽然现在还不能够非常清楚地使用这个方法。
 
@@ -3104,10 +3124,9 @@ $$
 \nabla J(\theta)  \propto   \sum_s \mu(s)  \sum_a \Big( q_\pi(s,a) - b(s) \Big) \nabla \pi(a|s,\theta)
 $$
 
-其中，b(s)可以是任意函数，甚至是随机变量，**只要与a无关都行**，该等式成立的原因如下
+其中，b(s)可以是任意函数，甚至是随机变量，**只要与a无关都行**，可以与$\theta$ 有关
 
-数学上   [ f(x) + c ]' = f'
-
+The baseline can be any function, even a random variable, as long as it does not vary with a; the equation remains valid because the subtracted quantity is zero:
 $$
 \sum_a b(s)\nabla\pi(a|s,\theta) = b(s)\nabla\sum_a \pi(a|s,\theta) = b(s)\nabla 1 = 0
 $$
@@ -3116,7 +3135,9 @@ $$
 \theta_{t+1} \doteq \theta_t + \alpha \Big (G_t - b(S_t) \Big ) \frac{\nabla \pi(A_t|S_t,\theta_t)}{\pi(A_t|S_t,\theta_t)}
 $$
 
-由于baseline的均值为0，则上式是REINFORCE的扩展，虽然baseline的期望值对更新无影响，但**对更新的方差影响很大**。  显然，对某个状态s，a，得分必须比基准高才往那个方向倾斜。
+由于baseline的均值为0，则上式是REINFORCE的扩展，虽然baseline的期望值对更新无影响，但**对更新的方差影响很大**。  显然，对某个状态s，a，得分必须比基准高才往那个方向倾
+
+
 
 自然的选择每个状态值函数的估计值$\widehat{v}(S_{t},w)$作为算法的baseline ； 选所有G的均值也蛮好的
 
@@ -3128,20 +3149,13 @@ $$
 
 #### Actor–Critic Methods
 
-尽管带baseline的REINFORCE算法同时使用了策略函数和状态值函数，但是我们不认为它是一个actor-critic算法因为它的值函数只作为一个baseline而没有作为一个critic。也就是说它没有用来作为自举bootstrapping.
+尽管带baseline的REINFORCE算法同时使用了策略函数和状态值函数，但是我们不认为它是一个actor-critic算法因为它的值函数只作为一个baseline而没有作为一个critic。That is, it is not used for bootstrapping, but only as a baseline for the state.
 
+[^_^]: 感觉真正核心的还是 价值网络,  策略网络只是基于之上的调度; 而且对很多时候, 值函数拟合的不好容易造成很多问题
 
+引入了bootstrap, 也就引入了偏差, 以及对值函数拟合的依赖。但这通常是有益的，一般会减少方差并且加速收敛。带baseline的REINFORCE算法是无偏的并且会渐进收敛到**局部最小值**，但是MC形式的算法一般会学习的很慢(有估值方差很高的问题), 而且不方便应用到online问题和continuing问题。使用TD方法可以解决这些弊端, 而且通过multi-step的部署可以灵活地选择 bootstrap的程度(degree).  下面介绍 actor–critic methods with a bootstrapping critic.
 
-真正核心的还是 价值网络,  策略网络只是基于之上的调度
-
-
-
-加入 TD
-
-只有使用了自举的方式才能够带来偏差和一个对于函数近似量的渐进依赖。自举带来的偏差和对于状态表示的依赖是有益的，一般会减少方差并且加速收敛。带baseline的REINFORCE算法是无偏的并且会渐进收敛到**局部最小值**，但是MC形式的算法一般会学习的很慢而且不方便应用到online问题和continuing问题。
-
- 类似 semi-gradient  TD(0):
-
+One-step actor–critic methods:   one-step return 替换了REINFORCE里面的G (full return), 并且use a learned state-value function as the baseline.  **注意, 这里的baseline,用的当前已经学到的 $v_\theta(s)$**  
 $$
 \begin{aligned}
 \theta_{t+1} & \doteq   \theta_t + \alpha \Big (G_{t:t+1} - \hat v(S_t,\mathbf w) \Big ) \frac{\nabla \pi(A_t|S_t,\theta_t)}{\pi(A_t|S_t,\theta_t)}
@@ -3150,6 +3164,9 @@ $$
 \end{aligned}
 $$
 
+
+
+ v(s)的拟合可以用  semi-gradient  TD(0). 
 
 ![image-20190118213627593](/img/RL_Introduction.assets/image-20190118213627593.png)
 
