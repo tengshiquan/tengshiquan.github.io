@@ -610,7 +610,7 @@ u_t &= \lim_{p \to \infty} \Big( (1- \beta^p_2) \sum_{i=1}^t \beta_2^{p(t-i)} \c
 \end{align}
 $$
 
-此方法对学习率的上限提供了一个更简单的范围 $\mid \Delta t \mid \leq \alpha$
+此方法对学习率的上限提供了一个更简单的范围 $\vert \Delta t \vert \leq \alpha$
 
 ![image-20191129163631762](/img/Optimizer.assets/image-20191129163631762.png)
 

@@ -425,7 +425,7 @@ Nonstationary ：环境的属性， r 对于 时间的稳定性 ！r本身是随
 
 
 
-agent is following policy $\pi$  at time t , $\pi(a \mid s)$  is the probability that $A_t = a$ if $S_t = s$  几率函数，跟p一样
+agent is following policy $\pi$  at time t , $\pi(a \vert s)$  is the probability that $A_t = a$ if $S_t = s$  几率函数，跟p一样
 
 
 
@@ -586,7 +586,7 @@ V -> P;  两个 Bellman optimality equations
 
 思路：bellman改迭代 ， 逼近， 去近似 $V_\pi$
 
-If the environment’s dynamics are completely known,  上式 a system of $\mid S \mid$ simultaneous linear equations, $\mid S \mid$ 个联立的线性方程组，则bellman方程可以直接求解； DP 是用迭代的方法求解  **iterative solution ** 
+If the environment’s dynamics are completely known,  上式 a system of $\vert S \vert$ simultaneous linear equations, $\vert S \vert$ 个联立的线性方程组，则bellman方程可以直接求解； DP 是用迭代的方法求解  **iterative solution ** 
 
 
 目标：求解 sequence of approximate value functions V(s) : $\mathcal S^+ \to \mathbb R$
@@ -667,7 +667,7 @@ $$
 
 
 
-**stochastic policies**: $\pi(a\mid s)$  probability of taking action a in state s under stochastic policy  这边是几率值
+**stochastic policies**: $\pi(a\vert s)$  probability of taking action a in state s under stochastic policy  这边是几率值
 
 对所有的能取到 maximum 的actions 概率一样， 其他 submaximal 取值小的都概率0
 
@@ -950,11 +950,11 @@ Off-policy methods evaluate or improve a policy different from that used to gene
 
 
 
-on-policy control methods the policy is generally **soft**, meaning that $\pi(a\mid s) > 0 \ \  \forall s \in  \mathcal S \ and \ \forall a \in \mathcal A(s) $, 每个s，a都有机会 
+on-policy control methods the policy is generally **soft**, meaning that $\pi(a\vert s) > 0 \ \  \forall s \in  \mathcal S \ and \ \forall a \in \mathcal A(s) $, 每个s，a都有机会 
 
-$soft$ :  $\pi(a\mid s) >  0$  每个a都有机会取到，  比如exploring start 就保证了这个条件
+$soft$ :  $\pi(a\vert s) >  0$  每个a都有机会取到，  比如exploring start 就保证了这个条件
 
-$\epsilon-soft$ :   $\pi(a\mid s) \geq  \frac{\epsilon}{\mid \mathcal A(s)\mid }$ for all s,a ;  $ 1 \geq \epsilon >0$  即所有的都有几率选到   这样跟上面的soft没有太大区别，但是最小的概率有了下限，比soft要大
+$\epsilon-soft$ :   $\pi(a\vert s) \geq  \frac{\epsilon}{\vert \mathcal A(s)\vert }$ for all s,a ;  $ 1 \geq \epsilon >0$  即所有的都有几率选到   这样跟上面的soft没有太大区别，但是最小的概率有了下限，比soft要大
 
 $\epsilon-greedy$ :   就是 $\epsilon$ 几率选全部a ， $1- \epsilon $ 的几率选最优的a
 
@@ -1036,7 +1036,7 @@ Prediction:
 
 $\pi$ is the target policy, b is the behavior policy,   both   **fixed** and given.
 
-**assumption of coverage**:  require  $ \pi(a\mid s) > 0 $  implies    $b(a\mid s) > 0 $  即target如果会选到一个动作， behavior必须也要能采样到
+**assumption of coverage**:  require  $ \pi(a\vert s) > 0 $  implies    $b(a\vert s) > 0 $  即target如果会选到一个动作， behavior必须也要能采样到
 
 b must be stochastic in states where it is not identical to $\pi$  b策略是随机的并且与pi不一样 ， pi策略可以是deterministic ;  在control 的情况下， pi 策略一般用的是当前value 估值下的 deterministic greedy 算法； 本节是prediction问题，所以 pi策略是不变的
 
@@ -1410,7 +1410,7 @@ TD methods converge more quickly than Monte Carlo methods
 
 
 
-If $n = \mid S \mid$ is the number of states, then just forming the maximum-likelihood estimate of the process
+If $n = \vert S \vert$ is the number of states, then just forming the maximum-likelihood estimate of the process
 may require on the order of n^2 memory, and computing the corresponding value function requires on the order of n^3 computational steps if done conventionally. In these terms it is indeed striking that TD methods can approximate the same solution using memory no more than order n and repeated computations over the training set. On tasks with large state spaces, TD methods may be the only feasible way of approximating the certainty-equivalence solution.  ? TD 比 按常规做法 省内存
 
 
@@ -2098,7 +2098,7 @@ function approximate 无法用于 state的维度逐渐增加的情况，在第17
 - MC（蒙特卡罗）  $S_t \mapsto G_t$
 - TD（0）  $S_t \mapsto R_{t+1} + \gamma \hat v(S_{t+1},\mathbf w_t) $
 - n-step TD   $S_t \mapsto G_{t：t+n} $
-- DP（动态规划）  $s \mapsto E_\pi[R_{t+1} + \gamma \hat v(S_{t+1},\mathbf w_t)\mid S_t = s]$
+- DP（动态规划）  $s \mapsto E_\pi[R_{t+1} + \gamma \hat v(S_{t+1},\mathbf w_t)\vert S_t = s]$
 
 
 
@@ -2182,7 +2182,7 @@ $$
 
 
 
-如果 $U_t$是一个无偏估计，即$E[U_t\mid S_t = s] = v_\pi(S_t)$，那么在$\alpha$递减情况下，$\mathbf w_t$最终会收敛到一个局部最优。 
+如果 $U_t$是一个无偏估计，即$E[U_t\vert S_t = s] = v_\pi(S_t)$，那么在$\alpha$递减情况下，$\mathbf w_t$最终会收敛到一个局部最优。 
 
 假设这些样例中的states都是agent与环境交互产生，和 Monte Carlo算法中的采样数据一样。那么true value则为这些states value的期望值，因此Monte Carlo target  $U_t \doteq G_t$为$v_\pi(S_t)$的无偏估计，SGD算法用于 Monte carlo的算法伪代码如下图所示： 
 
@@ -2508,7 +2508,7 @@ r(\pi) \doteq \lim_{h\to \infty} \frac{1}{h} \sum_{t=1}^{h}  \mathbb E[R_t | S_0
 \\ = \sum_s \mu_\pi(s) \sum_a \pi(a|s) \sum_{s',r} p(s',r|s,a)r
 $$
 
-其中，$\mu_\pi$是稳态分布steady state distribution，$\mu_\pi = lim_{t\to \infty} Pr\{S_t = s \mid A_{0:t-1} \sim \pi \}$，假设$\mu_\pi$对任意$\pi$均存在，且独立于 S_0。这个假设对MDP来说被称为ergodicity (遍历）。这意味着MDP从何处开始或任何早期agent的决定所产生的影响都是暂时的。长期来说，一个state 下的期望值仅仅取决于policy和MDP状态转移概率。遍历条件是上式有极值的重要保证。
+其中，$\mu_\pi$是稳态分布steady state distribution，$\mu_\pi = lim_{t\to \infty} Pr\{S_t = s \vert A_{0:t-1} \sim \pi \}$，假设$\mu_\pi$对任意$\pi$均存在，且独立于 S_0。这个假设对MDP来说被称为ergodicity (遍历）。这意味着MDP从何处开始或任何早期agent的决定所产生的影响都是暂时的。长期来说，一个state 下的期望值仅仅取决于policy和MDP状态转移概率。遍历条件是上式有极值的重要保证。
 
 对undiscounted连续问题来说，很难区分哪种优化方法好，但根据每个time step的average reward规划出policy比较实用。也就是通过求解$r(\pi)$，计算出使得$r(\pi)$最大的\pi作为optimal Policy。
 
@@ -3106,7 +3106,7 @@ $$
 
 ![image-20190118114803477](/img/RL_Introduction.assets/image-20190118114803477.png)
 
-eligibility vector ： $\nabla  \ln \pi(A_t\mid S_t,\theta) $
+eligibility vector ： $\nabla  \ln \pi(A_t\vert S_t,\theta) $
 
 作为一个随机梯度方法，REINFORCE法有一个**良好的理论收敛 good theoretical convergence**性质。通过构造可以使得期望更新的方向和评估函数梯度方向一直，这就保证了对于足够小的参数α 算法一定能够收敛到一个**局部最优**。但是MC形式的REINFORCE方法会带来较大的方差和较慢的学习速度。
 
