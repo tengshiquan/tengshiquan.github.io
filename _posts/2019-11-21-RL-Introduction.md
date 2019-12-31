@@ -3019,6 +3019,8 @@ $$
 
 sum_a 对所有的状态都是一样的，可以一层层拿进去, 最后可以放到最后面去。  
 
+**核心思想: 利用bellman公式将梯度层层展开, 并利用每步reward与参数无关, 将 $Q^\pi$ 的导数转化为 $\pi$ 的导数**
+
 $ Pr(s \to x,k,\pi) $ is the probability of transitioning  from state s to state x <u>in k steps</u> under policy $\pi$ 
 
 Pr 表示状态s在某一步的占比，所有步加起来就是在整个路径上的占比。
@@ -3041,7 +3043,7 @@ $$
 
 结论：梯度与状态概率分布的导数无关， 梯度正比于下面的右边
 
-注意, 这里 $\pi$以及q仍然是网络参数$\theta$的函数
+注意, 这里 $\pi$以及q仍然是网络参数$\theta$ 的函数
 
 $$
 \nabla J(\theta)  \propto   \sum_s \bigg[\mu(s)  \sum_a  q_\pi(s,a) \nabla \pi(a|s,\theta)  \bigg ]
