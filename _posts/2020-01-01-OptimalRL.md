@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      Approximately Optimal Approximate Reinforcement Learning
-subtitle:   Note on "Approximately Optimal Approximate Reinforcement Learning"
+subtitle:   Note on "Approximately Optimal Approximate Reinforcement Learning" (2002)
 date:       2020-01-01 12:00:00
 author:     "tengshiquan"
 header-img: "img/about-bg.jpg"
@@ -16,7 +16,7 @@ tags:
 
 # Note on "Approximately Optimal Approximate Reinforcement Learning"
 
-论文笔记.  这个标题有点绕.  近似最优的 近似强化学习
+论文笔记.  这个标题有点绕.  近乎最优的 近似强化学习  2002
 
 
 
