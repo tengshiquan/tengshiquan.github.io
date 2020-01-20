@@ -32,13 +32,13 @@ CPI算法: 1. 保证改进 2. 保证停止 3. 返回一个"近似"最优策略. 
 
 强化学习领域, 两个已经成功的常见方法: 贪婪动态规划(**greedy dynamic programming**) 和 策略梯度(**policy gradient**).  然而, 两个方法都可能无法有效改进策略.   论文里,  greedy dynamic programming 和 approximate value function都是指,  先value estimating 然后再迭代策略的方法. 
 
-对GDP,  近似值函数(Approximate value function)方法缺少有力的理论上的性能保证. 
+对greedy dynamic programming,  **近似值函数(Approximate value function)方法**缺少有力的理论上的性能保证. 
 
 PG算法需要太多的sample来准确计算梯度, 因为PG将 exploration 和 exploitation 交替在一起. 
 
-本论文中,  考虑一个设置setting,  设定我们的算法拥有 restart distribution 和 greedy policy chooser。
+本论文中,  考虑一个环境setting,  假定我们的算法拥有 restart distribution 和 greedy policy chooser。
 
-Restart distribution 允许agent从自己设计的一个固定的分布里获取next state.  通过分布更平均的restart distribution, agent可以获取平时不一定访问的状态的信息.
+**Restart distribution** 允许agent从自己设计的一个固定的分布里获取next state(应该是指 restart state).  通过分布更平均的restart distribution, agent可以获取平时不一定访问的状态的信息.
 
 Greedy policy chooser是一个黑盒, 输出一个新策略, 一般(on average)选择较当前策略有大幅优势的动作, 即, 产出一个近似贪婪策略.  Greedy policy chooser 可以用 对value function的回归算法来实现.
 
@@ -47,7 +47,7 @@ Greedy policy chooser是一个黑盒, 输出一个新策略, 一般(on average)�
 1. 在更加均匀的状态空间(state space)上, 改进策略 
 2. 执行更保守的策略更新，新策略是当前策略和贪婪策略的混合.   
 
-换言之, 1. 体现 探索性  2. 避免greedy dynamic programming的缺陷,  greedy dynamic programming直接使用近似贪婪策略, 可能使得策略退化(degradation)
+换言之, 1. 体现 探索性  2. 避免greedy dynamic programming的缺陷,  greedy dynamic programming直接使用近似贪婪策略, 可能使得策略**退化(degradation)**
 
 作者证明该算法在"很少"的步数内就可以收敛, 并返回一个近似最优策略. 该策略的性能,并且不显式取决于状态空间大小.
 
@@ -65,7 +65,7 @@ $\pi(a;s)$ :  在state s 下选取 action a 的probability,  ; 分号用于区�
 
 restart distribution 是 生成模型(**generative model**, 参考5)的一个弱化版. 这两者都比掌握 full transition model 要弱. 而这些又都比 "irreversible" experience 要强.  在"irreversible" experience 中, agent只能遍历一整个trajectory, 无法随时reset进入另外一个trajectory. 
 
-$\mu$ 只要是一个相对均匀的分布,  (不必须与$D$ 一样),  就可以避免显式地去探索 (explicit exploration).
+$\mu$ 只要是一个相对均匀的分布,  (不必须与$D$ 一样),  就可以避免**显式地探索 (explicit exploration)**.
 
 **Value function**:  discounted average reward
 $$
@@ -91,9 +91,9 @@ $$
 d_{\pi, \mu}(s) \equiv(1-\gamma) \sum_{t=0}^{\infty} \gamma^{t} \operatorname{Pr}\left(s_{t}=s ; \pi, \mu\right)
 $$
 
-$1-\gamma$ 是normalization所必须的.  上式表示, 起始状态的选取符合$\mu$ 分布,   按照$\pi$来执行, 之后所有state可能为s的 discounted 几率和, 折扣后占比.
+$1-\gamma$ 是normalization所必须的.  上式表示, 起始状态的选取符合$\mu$ 分布,   按照$\pi$来执行, 之后所有state可能为s的 discounted 几率和, 折扣后占比.  这里, $\gamma$ 主要是为了乘以R用的.
 
-$d_{\pi,s}$ 表示, 从状态s开始的 discounted future state distribution.  则有
+$d_{\pi,s}$ 表示, 从状态s开始的 discounted future state distribution.  则有, 所有从s出发的以及之后的(s',a')的回报的期望
 $$
 V_{\pi}(s)  = E_{(a',s') \sim \pi d_{\pi, s}} [\mathcal{R} (s', a')]
 $$
@@ -126,10 +126,8 @@ $$
 
 ##### Approximate Value Function Methods
 
-精确值函数方法(exact value function, 指 tabular之类方法, 不是用函数来拟合value estimating), 如 policy iteration,  PI对$\pi$, 计算$Q_\pi(s, a)$, 然后创建新的deterministic policy $\pi'$ such that   $\pi'(а;ѕ)=1$ іff $\arg \max_aQ(s,a)$
+精确值函数方法(exact value function), 如 policy iteration,  PI对$\pi$, 计算$Q_\pi(s, a)$, 然后创建新的deterministic policy $\pi'$ such that   $\pi'(а;ѕ)=1$ іff $\arg \max_aQ(s,a)$
 重复该过程直到 state-action values 收敛到最佳值optimal values.  Exact value function 有很强的边界，表明值收敛到最佳值的速度有多快(参考7)
-
-
 
 基于近似值函数的策略的性能缺乏理论研究结果, 这会导致该方法对三个问题的答案都很弱。
 
@@ -157,22 +155,22 @@ PG算法尝试通过沿着未来reward的梯度, 在限定的一类策略中 找
 
 根据参考8 sutton, 下式计算梯度
 $$
-\quad \nabla \eta_{D}=\sum_{s, a} d_{\pi, D}(s) \nabla \pi(a ; s) Q_{\pi}(s, a) \tag{3.2}
+\nabla \eta_{D}=\sum_{s, a} d_{\pi, D}(s) \nabla \pi(a ; s) Q_{\pi}(s, a) \tag{3.2}
 $$
 
 PG算法对问题1有个不错的答案, 因为在梯度提升的情况下, 性能会保证改进.   对问题2, 要判定梯度的方向是困难的.  我们发现,梯度方法缺乏探索性(lack of exploration)意味着需要大量样本才能准确估计梯度方向。
 
 <img src="/img/2020-01-01-OptimalRL.assets/image-20200104205347255.png" alt="image-20200104205347255" style="zoom: 25%;" />
 
-一个agent, 两个action, 左右.  在两个action几率一样的情况下, 从最左边到达目标最右边, 期望时间是 $3\left(2^{n}-n-1\right),$ 当 $n=50,$ 大约是 $10^{15}$.  这个MDP属于一类MDPs, 随机操作更有可能增加到目标状态的距离,越来越远。对这类问题, 使用无方向的探索,即随机游走, 到达目标的预期时间是状态空间大小的指数级别. 因此, 任何 "on-policy" 方法都必须必须走这么长,才能找到改进的点.  lack of exploration.
+上图中的MDP, 一个agent, 两个action, 左右.  在两个action几率一样的情况下, 从最左边到达目标最右边, 期望时间是 $3\left(2^{n}-n-1\right),$ 当 $n=50,$ 大约是 $10^{15}$.  这个MDP属于一类MDPs, 随机操作更有可能增加到目标状态的距离,越来越远。对这类问题, 使用无方向的探索,即随机游走, 到达目标的预期时间是状态空间大小的指数级别. 因此, 任何 "on-policy" 方法都必须必须走这么长,才能找到改进的点.  lack of exploration.
 
-在没有达到目标状态的情况下，对梯度的任何合理的估计都将为0，并且获得非0估计值需要使用“on-policy”样本的指数级时间。 Importance sampling 方法对于此类问题而言并不可行。 因为如果agent可以遵循一些“off-policy”的轨迹在合理的时间内达到目标状态，则重要性权重必须是指数级别。
+在没有达到目标状态的情况下，对梯度的任何合理的估计都将为0，并且获得非0估计值需要使用“on-policy”样本的指数级时间。 Importance sampling 方法对于此类问题而言并不可行,  因为如果agent可以遵循一些“off-policy”的轨迹在合理的时间内达到目标状态，则重要性权重必须是指数级别的数值大小。
 
-0估计是一个相当准确的梯度估计,在数量级上.  但0没有提供方向这个关键信息.  参考[2]表明, 只需要一个相对较小的样本大小即可准确估计数量级，但如果梯度较小则意味着方向不准确。 不幸的是，当政策远未达到最优时，梯度的大小可能非常小。
+梯度的0值估计在数量级上还是比较准确的 .  但0没有提供方向这个关键信息.  参考[2]表明, 只需要一个相对较小的样本大小即可准确估计数量级，但如果梯度较小则意味着方向不准确。 不幸的是，当政策远未达到最优时，梯度的大小可能非常小。
 
 <img src="/img/2020-01-01-OptimalRL.assets/image-20200104205436283.png" alt="image-20200104205436283" style="zoom: 33%;" />
 
-上图左边是个MDP,  使用 Gibbs table-lookup distributions, $\{\pi_{\theta}: \pi(a ; s) \propto \exp \left(\theta_{s a}\right) \} $ 在i处增加自循环的机会会降低j的平稳概率，从而妨碍在j状态下的学习. 
+另外一个例子, 上图左边是个两个state的MDP,  策略使用 Gibbs table-lookup distributions, $\{\pi_{\theta}: \pi(a ; s) \propto \exp \left(\theta_{s a}\right) \} $ , 在i处增加自循环的机会会降低j的平稳概率，从而妨碍在j状态下的学习. 
 初始化一个策略,  $\rho(i)=.8$,  $\rho(j)=.2$,  $\pi(a_1;i) =.8$ , $\pi(a_1;j) =.9$ ;  在i处学习必然会影响在j处学习, 造成一个很平坦的高原. 从下图看出, 按照刚才的初始化, $\rho(j)$ 会降到 $10^{-7}$, 非常严重.   就像在例1中一样, 要获得非0的梯度估值必须访问 j.  如果上图左边状态更多一些, 则问题更加严重. 
 
 <img src="/img/2020-01-01-OptimalRL.assets/image-20200104205515790.png" alt="image-20200104205515790" style="zoom: 33%;" />
@@ -192,11 +190,11 @@ $$
 这里, $\mu$ 是一个'exploratory' restart distribution.     
 初始状态从更加uniform的$\mu$中选取,之前一些访问不到的状态都可以作为起始状态, 相当于强制visit
 
-[^_^]: 能否根据熵来判断这些state的权重. 
+[^_^]: 能否根据熵来判断这些state的权重.  统计学有点类似于玄学.
 
 下面的问题是, 能否有最优策略在最大化 $\eta_\mu$ 的同时, 保证在$\eta_D$ 下也是一个好的策略.  毕竟出发点的分布改变了.
 
-任何最优策略都能同时最大化  $\eta_\mu$ 和 $\eta_D$.  但是, 能最大化$\eta_\mu$ 的有限类型的策略, 可能在$\eta_D$上表现不好. 所以必须确保最大化$\eta_\mu$ 的策略在$\eta_D$上也是好的策略.
+任何最优策略都能同时最大化  $\eta_\mu$ 和 $\eta_D$.  但是, 能最大化$\eta_\mu$ 的那类策略, 可能在$\eta_D$上表现不好. 所以必须确保最大化$\eta_\mu$ 的策略在$\eta_D$上也是好的策略.
 
 **Greedy policy iteration** updates the policy to some $\pi'$ based on some approximate state-action values.
 conservative update rule: 
@@ -210,7 +208,7 @@ $$
 
 #### Policy Improvement
 
-一个更合理的情况是,  取$\alpha > 0$, 我们可以通过一个可以某些状态取更好action策略$\pi'$ (不要求在所有states)来改进策略
+一个更合理的情况是,  取$\alpha > 0$, 我们可以通过一个可以某些状态取更好action策略$\pi'$ (不要求在所有states)来改进策略.
 
 定义优势函数 ,  advantage of $\pi'$ 
 
@@ -218,11 +216,11 @@ $$
 \mathbb{A}_{\pi, \mu}\left(\pi^{\prime}\right) \equiv E_{s \sim d_{\pi, \mu}}\left[E_{a \sim \pi^{\prime}(a ; s)}\left[A_{\pi}(s, a)\right]\right]
 $$
 
-公式含义, 里面的期望是 在s的时候, 按$\pi'$能比$\pi$好多少,  外面的期望是, s的分布按照$\pi$ 来一遍.
+公式含义, 里面的期望是 在s的时候, 按$\pi'$能比$\pi$好多少,  外面的期望是, 从$\mu$的起始状态出发, 执行$\pi$策略,经历的s的期望.
 
 该优势函数可以衡量$\pi ^ {\prime}$选择actions具有的优势程度，起始状态  $s \sim \mu$ , with respect to  the set of states visited under $\pi$.  注意，如果一步 policy improvement 能使得 policy advantage 最大, 则找到了一个更好的策略.
 
-利用公式3.2 可得  $\frac{\partial \eta_{\mu}}{\partial \alpha} \vert_{\alpha=0}= \frac{1}{1-\gamma} \mathbb{A}_{\pi, \mu}$ ,   ???? 
+利用公式3.2 可得  $ \frac{\partial \eta_{\mu}}{\partial \alpha} \vert_{\alpha=0}= \frac{1}{1-\gamma} \mathbb{A}_{\pi, \mu}$,  由上面的公式4.1,  $\frac{\partial{\pi_{new}} }{\partial \alpha}=  \pi'(a;s) -  \pi(a;s) $  再有PG梯度公式
 
 所以 $\eta_{\mu}$ 上的改变就是:
 
@@ -269,7 +267,7 @@ Proof. 基于之前的结论, 改变的大小被限定在 $\frac{\alpha}{1-\gamm
 使得 $ \mathbb A_{\pi, \mu} (\pi') \geq \text{OPT} ( \mathbb A_{\pi, \mu} ) -\varepsilon$   , 其中 $\operatorname{OPT} (\mathbb A_{\pi, \mu} ) \equiv \max_{\pi^{\prime}} \mathbb A_{\pi, \mu} (\pi')$
 
 作者证明, 使用一个回归算法, 以平均误差$\frac{\varepsilon}{2}$来拟合 advantage 足够构造这样的 $G_{\varepsilon} .$
-"break point":  当 greedy policy chooser 无法保证返回一个 正数的advantage的策略的时候, 即当 $\mathrm{OPT}\left(\mathrm{A}_{\pi, \mu}\right)<\varepsilon$时, 无法保证改进. 
+"**break point**":  当 greedy policy chooser 无法保证返回一个 正数的advantage的策略的时候, 即当 $\mathrm{OPT}\left(\mathrm{A}_{\pi, \mu}\right)<\varepsilon$时, 无法保证改进. 
 
 **Conservative Policy Iteration** 算法:
 
@@ -284,7 +282,7 @@ Proof. 基于之前的结论, 改变的大小被限定在 $\frac{\alpha}{1-\gamm
 
 下面的定理表明, 在多项式的时间内, 完整的算法会找到一个策略, 接近"break point" .  
 
-**Theorem 4.4.** 至少以概率 $1-\delta$ conservative policy iteration: 
+**Theorem 4.4.** 至少以概率 $ , conservative policy iteration算法会 
 
 1. 每次policy update都改进 $\eta_{\mu}$ 
 
@@ -369,7 +367,7 @@ $$
 
 
 
-该引理说明了一个基本的 不匹配的度量.  当$\alpha$比较小时, 性能度量 $\eta_{D}(\pi)$的改变 同比于 $\mathbb A_{\pi, D}  (\pi')$ , 对状态分布$d_{\pi, D}$的策略优势.  然而, 对最优策略, $\eta_{D}\left(\pi^{*}\right)$ 与$\eta_{D}(\pi)$ 同步于 对状态分布 $d_{\pi^*, D}$ 的策略优势. 因此, 就算 对$\pi$ 和 $D$ 的最优策略优势很小, 对$d_{\pi^*, D}$ 的策略优势未必很小.   这促使使用 跟均匀的分布 $\mu$
+该引理说明了一个基本的不匹配的度量.  当$\alpha$比较小时, 性能度量 $\eta_{D}(\pi)$的改变 同比于 $\mathbb A_{\pi, D}  (\pi')$ , 对状态分布$d_{\pi, D}$的策略优势.  然而, 对最优策略, $\eta_{D}\left(\pi^{*}\right)$ 与$\eta_{D}(\pi)$ 同步于 对状态分布 $d_{\pi^*, D}$ 的策略优势. 因此, 就算 对$\pi$ 和 $D$ 的最优策略优势很小, 对$d_{\pi^*, D}$ 的策略优势未必很小.   这促使使用更均匀的分布 $\mu$
 
 算法停止后, 会返回一个对 $\mu$ 有小的策略优势的 策略 $\pi$ .  下面量化, 对任意测量指标$\tilde{\mu}$, 该策略离最优策略有多远.   
 
@@ -428,14 +426,14 @@ Direct policy search 也可以被用于 greedy  policy chooser.
 
 ##### What about improving $\eta_D $?
 
-"Can we improve the роlісу ассоrdіng tо bоth $eta_D$ аnd $eta_\mu$ аt еасh uрdаtе?"
+"Can we improve the роlісу ассоrdіng tо bоth $\eta_D$ аnd $\eta_\mu$ аt еасh uрdаtе?"
 In general the answer is "no", but consider improving the performance under $\tilde \mu= (1- \beta)\mu + \beta D$ instead of just $\mu$. This metric only slightly changes the quality of the asymptotic policy. However by giving weight to D,
 the possibility of improving $\eta_D$ is allowed if the optimal policy has large advantages under D, though we do not formalize this here. The only situation where joint improvement with $\eta_D$  is not possible is when $\text{OPT}(\mathbb A_{\pi,D}) $ is small. However, this is the problematic case where, under D, the large advantages are not at states visited frequently.
 
 ##### Implications of the mismatch
 
-The bounds we have presented directly show the importance of ensuring the agent starts in states where
-the optimal policy tends to visit. It also suggests that certain optimal policies are easier to learn in large state spaces- namely those optimal policies which tend to visit a significant fraction of the state space. An interesting suggestion for how to choose u, is to use prior knowledge of which states an optimal policy tends to visit.
+The bounds we have presented directly show the importance of ensuring the agent <u>starts in states where</u>
+<u>the optimal policy tends to visit</u>. It also suggests that certain optimal policies are easier to learn in large state spaces-namely those optimal policies which tend to visit a significant fraction of the state space. An interesting suggestion for how to choose u, is to <u>use prior knowledge</u> of which states an optimal policy tends to visit.
 
 
 
