@@ -105,6 +105,10 @@ http://fourier.eng.hmc.edu/e176/lectures/NumericalMethods/node18.html
 
 ## Conjugate Gradient  共轭梯度
 
+http://fourier.eng.hmc.edu/e176/lectures/NumericalMethods/node19.html
+
+<img src="http://fourier.eng.hmc.edu/e176/lectures/ConjugateGradient.png" alt="ConjugateGradient.png" style="zoom:80%;" />
+
 form https://en.wikipedia.org/wiki/Conjugate_gradient_method
 
 ![img](/img/2020-03-01-ConjugateGradient.assets/220px-Conjugate_gradient_illustration.svg.png)
