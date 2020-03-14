@@ -16,8 +16,6 @@ tags:
 
 
 
-
-
 # Steepest Descent & Conjugate Gradient
 
 
@@ -30,10 +28,15 @@ tags:
 2. 对一般GD算法, 步长就是学习率; 在这个算法里面,  步长是 计算出来的.  什么样的步长最适合?  沿着该点梯度反方向走, 一直走到该方向函数值由下降转为上升的点, 即一直走到与目前方向与那个点等高线相切.  显然本次方向也就与下一次迭代的方向垂直了. 轨迹是zigzag .   
 3. 另一个角度,下一步的迭代方向如果跟前一步的不垂直, 那说明前一步还有分量在该点上可以继续改进.
 4. 怎么求这个点, 显然这个点是该次迭代方向上的一个极值点, 同时又是步长这个单变量的函数, 可以令方向导数为0来求.    **Line search**    注意区分, 该点的梯度以及该点的方向导数. 
+5. 如果起始点选在特征向量方向上, 则可以一步走到目标; 对二维, 两个特征向量之间一个方向, 拉伸后是45°, 是收敛步数最多的.
 
 
 
 <img src="http://fourier.eng.hmc.edu/e176/lectures/GradientDescent.png" alt="GradientDescent.png" style="zoom: 67%;" />
+
+
+
+<img src="http://fourier.eng.hmc.edu/e176/lectures/GradientDescent1.png" alt="GradientDescent1.png" style="zoom: 67%;" />
 
 
 
@@ -97,6 +100,8 @@ $$
 
 
 
+
+
 http://fourier.eng.hmc.edu/e176/lectures/NumericalMethods/node18.html
 
 
@@ -115,18 +120,20 @@ form https://en.wikipedia.org/wiki/Conjugate_gradient_method
 
 
 
-https://zhuanlan.zhihu.com/p/64227658  核心要点
+https://zhuanlan.zhihu.com/p/64227658  
+
+说的比较简单  但这篇里面用r表示搜索方向, 一般r都是表示残差, 负梯度. 公式部分不用细看
 
 所谓共轭梯度法, 最大的优势就是每个方向都走到了极致, 也即是说寻找极值的过程中绝不走曾经走过的方向,那么 n 空间的函数极值也就走 n 步就解决了.假如是二维空间, 那就直走两步, 跟最速下降法比优势是不言而喻的.
 
 - 满足什么条件才叫某个方向彻底走到了极致呢?
-- 如果说当前的误差跟上一步的方向是正交的是不是意味着这个方向再也不需要走了?
+- 如果说**当前的误差跟上一步的方向是正交的**是不是意味着这个方向再也不需要走了?
 - 所谓迭代, 就是根据当前位置不断地得到新的方向和新的步长, 这样走下去.
-- 我们将下一步要走的方向记作: $r_t$
+- 我们将下一步要走的方向记作: $r_t$ 
 - 那前面的误差与上一步方向正交意思就是: $r_{t-1}^{T}{e_t}=0$
 - 那我们要是做到了这点方向就把握住了 ! 我们就走这个误差方向.
 - 但实际上我们根本找不到这个方向, 要是那么清楚方向一开始一步到位不就是了?
-- 但我们有一个等价的做法, 那就是共轭正交: $r_{t-1}^{T}A{e_t}=0$
+- 但我们有一个等价的做法, 那就是**共轭正交**: $r_{t-1}^{T}A{e_t}=0$
 - 其中矩阵 $A$ 是一个常对称矩阵, 也就是作用在右边向量的一个线性变换罢了.
 
 算法核心: 方向 + 步长
@@ -155,49 +162,132 @@ $$
 
 
 
-还有一种方法就是求方向导数: 
-
-
-$$
-f\left( {x_{t+1}} \right)=f\left( {x_{t}}+{\alpha_{t}}{r_{t}} \right)=g\left( {\alpha _{t}} \right)
-$$
-
-$$
-\frac{dg\left( {\alpha_{t}} \right)}{d{\alpha _{t}}}=0\Rightarrow {\alpha _{t}}=-\frac{r_{t}^{T}\nabla f\left( {x_{t}} \right)}{r_{t}^{T}A{r_{t}}}
-$$
-
-
-
 现在来确定方向 $r_t$ :
 
 - 至于第一个方向怎么选取呢? 理论上是随便选, 不过当然选负梯度方向是最好.
-- 给一组向量, 要得到正交化的向量, 施密特正交化
-- 不过现在的正交是共轭正交了, 但基本上差不多是一个意思, 按照施密特正交化的原理去推导出共轭正交的一组向量就是了.
+
+- 给一组向量, 要得到正交化的向量, **施密特正交化**
+
+  define the [projection](https://en.wikipedia.org/wiki/Projection_(linear_algebra)) [operator](https://en.wikipedia.org/wiki/Operator_(mathematics)) by 
+
+  
+  $$
+  {\displaystyle \mathrm {proj} _{\mathbf {u} }\,(\mathbf {v} )={\langle \mathbf {v} ,\mathbf {u} \rangle  \over \langle \mathbf {u} ,\mathbf {u} \rangle }{\mathbf {u} },}
+  $$
+  
+
+  The Gram–Schmidt process then works as follows:
+  $$
+  \begin{aligned}
+  &\mathbf{u}_{1}=\mathbf{v}_{1}, \quad \mathbf{e}_{1}=\frac{\mathbf{u}_{1}}{\left\|\mathbf{u}_{1}\right\|}\\
+  &\begin{aligned}
+  \mathbf{u}_{2} &=\mathbf{v}_{2}-\operatorname{proj}_{\mathbf{u}_{1}}\left(\mathbf{v}_{2}\right), & \mathbf{e}_{2} &=\frac{\mathbf{u}_{2}}{\left\|\mathbf{u}_{2}\right\|} \\
+  \mathbf{u}_{3} &=\mathbf{v}_{3}-\operatorname{proj}_{\mathbf{u}_{1}}\left(\mathbf{v}_{3}\right)-\operatorname{proj}_{\mathbf{u}_{2}}\left(\mathbf{v}_{3}\right), & \mathbf{e}_{3} &=\frac{\mathbf{u}_{3}}{\left\|\mathbf{u}_{3}\right\|} \\
+  \mathbf{u}_{4} &=\mathbf{v}_{4}-\operatorname{proj}_{\mathbf{u}_{1}}\left(\mathbf{v}_{4}\right)-\operatorname{proj}_{\mathbf{u}_{2}}\left(\mathbf{v}_{4}\right)-\operatorname{proj}_{\mathbf{u}_{3}}\left(\mathbf{v}_{4}\right), & \mathbf{e}_{4} &=\frac{\mathbf{u}_{4}}{\left\|\mathbf{u}_{4}\right\|} \\
+  & \vdots & & \vdots \\
+  \mathbf{u}_{k} &=\mathbf{v}_{k}-\sum_{j=1}^{k-1} \operatorname{proj}_{\mathbf{u}_{j}}\left(\mathbf{v}_{k}\right), & \mathbf{e}_{k} &=\frac{\mathbf{u}_{k}}{\left\|\mathbf{u}_{k}\right\|}
+  \end{aligned}
+  \end{aligned}
+  $$
+  
+- 不过**现在的正交是共轭正交**了, 但基本上差不多是一个意思, 按照施密特正交化的原理去推导出共轭正交的一组向量就是了.
+
 - 这样方向将被如此确定: 
 
 $$
 {r_{t}}=-\nabla f\left( {x_{t}} \right)+\sum\limits_{i<t}{\frac{r_{i}^{T}A\nabla f\left( {x_{t}} \right)}{r_{i}^{T}A{r_{i}}}{r_{i}}}
 $$
 
-- 怎么理解上面的式子呢? 其实就是每一步的方向都是在起点的负梯度方向的基础上做修改, 也就是说进行施密特正交化的线性无关组是每一步终点的负梯度构成的. 这里开始才有了梯度, 有梯度又是共轭正交所以叫做共轭梯度法. well, that makes a whole lot of sence.
-
-- 就拿 ${r_{t}}=-\nabla f\left( {x_{t}} \right)+\sum\limits_{i<t}{\frac{r_{i}^{T}A\nabla f\left( {x_{t}} \right)}{r_{i}^{T}A{r_{i}}}{r_{i}}}$
-  这个式子说事吧:
-
-- 下一步的方向第一部分是当前位置的负梯度 $-\nabla f\left( {x_{t}} \right)$ , 然后我们要在这个基础上把他在其他方向上的共轭分量减掉: $$-\nabla f\left( {x_{t}} \right)-\sum\limits_{i<t}{\frac{r_{i}^{T}A\left[ -\nabla f\left( {x_{t}} \right) \right]}{\left\| {r_{i}} \right\|_{A}^{2}}{r_{i}}}$$
-
-- 式子第二项分母是共轭模的平方, 有共轭正交就可以共轭内积这一说吧? 自然, 共轭模. 
-- 这个自己类比一下考虑考虑吧. 这样就像是在计算$-\nabla f\left( {x_{t}} \right)$ 在 $r_i$ 方向的分量, 然后再乘以这个方向.
-
-- 这样消除其他方向上的分量, 这个矢量就肯定跟其他方向正交了吧?
-
-- 消除其他方向上的共轭分量, 这个矢量肯定就跟其他方向共轭正交了吧?
 
 
 
 
+## 共轭梯度法详细推导分析
+
+https://blog.csdn.net/weixin_37895339/article/details/84640137
+
+算法求解速度较快，虽然比梯度下降法复杂，但是比二阶方法简单。
 
 
+$$
+r_k = -(Ax_k -b)   \quad 负梯度, 残差 \\ 
+e_k = x^* - x_k 	\quad 误差
+$$
+
+
+虽然梯度下降法的每一步都是朝着局部最优的方向前进的，但是它在不同的迭代轮数中会选择非常近似的方向，说明这个方向的误差并没通过一次更新方向和步长更新完，在这个方向上还存在误差，因此参数更新的轨迹是锯齿状。共轭梯度法的思想是，选择一个优化方向后，本次选择的步长能够将这个方向的误差更新完，在以后的优化更新过程中不再需要朝这个方向更新了。由于每次将一个方向优化到了极小，后面的优化过程将不再影响之前优化方向上的极小值，所以理论上对N维问题求极小只用对N个方向都求出极小就行了。为了不影响之前优化方向上的更新量，需要每次优化方向共轭正交。假定每一步的优化方向用$p_k$ 表示，可得共轭正交
+
+$$
+p_iAp_j = 0  , i \neq j
+$$
+
+由此可得，每一步优化后，当前的误差和刚才的优化方向共轭正交。
+
+$$
+p_k A e_{k+1} = 0
+$$
+
+#### 1.优化方向确定
+
+假定第一次优化方向为初始负梯度方向
+
+$$
+   p_1 = r_1 = b-Ax_1
+$$
+
+ 每一次优化方向与之前的优化方向正交，采用Gram-Schmidt方法进行向量正交化，每次优化方向根据**当前步的梯度**得出,  当前点的梯度, 减去了之前所有步的p分量, 即**将当前梯度共轭正交化**
+
+$$
+ p_k = r_k-\sum_{i \lt k}\frac{p_i^TAr_k}{p_i^TAp_i}p_i
+$$
+
+
+ 
+
+#### 2.优化步长的选取
+
+假定第k步的优化步长为 $\alpha_k$ ,  这里对于p, 可以是任意选择的, 如果是每点的梯度, 则是最速下降法.
+
+方法一： 
+
+$$
+f\left( {x_{t+1}} \right)=f\left( {x_{k}}+{\alpha_{k}}{p_{k}} \right)=g\left( {\alpha _{k}} \right)
+$$
+
+对 $\alpha_k$ 求导令导数为0可得
+
+$$
+\alpha_k=\frac{p_k ^Tr_k}{p_k^TAp_k}
+$$
+
+方法二：   
+
+$ e_{k+1} = x^{*}-x_{k+1} = x^{*}-x_{k}+x_{k}-x_{k+1} = e_{k}-a_{k} p_{k}  $   该式可以叠加到第一项
+
+$$
+\begin{align}
+\begin{aligned}
+p_{k}^{T} A e_{k+1} &=p_{k}^{T} A\left(x^{*}-x_{k+1}\right) \\
+&=p_{k}^{T} A\left(x^{*}-x_{k}+x_{k}-x_{k+1}\right) \\
+&=p_{k}^{T} A\left(e_{k}-a_{k} p_{k}\right) \\
+&=p_{k}^{T} A e_{k}-a_{k} p_{k}^{T} A p_{k}=0 \\ \\
+\to a_{k} &=\frac{p_{k}^{T} A e_{k}}{p_{k}^{T} A p_{k}} \\
+&=\frac{p_{k}^{T} A\left(x^{*}-x_{k}\right)}{p_{k}^{T} A p_{k}} \\
+&=\frac{p_{k}^{T}\left(A x^{*}-A x_{k}\right)}{p_{k}^{T} A p_{k}} \\
+&=\frac{p_{k}^{T}\left(b-A x_{k}\right)}{p_{k}^{T} A p_{k}} \\
+&=\frac{p_{k}^{T} r_{k}}{p_{k}^{T} A p_{k}}
+\end{aligned}
+\end{align}
+$$
+
+#### 推论
+
+1. 第k步计算的梯度 $r_k$  和前k-1步的优化向量$ \{p_i\}_{i=1}^{k-1}$正交。 
+2. 第k步计算的梯度 $r_k$  和前k-1步的梯度$ \{r_i\}_{i=1}^{k-1}$正交。 
+3. 第k步计算的梯度 $r_k$  和前k-2步的优化向量 $\{p_i\}_{i=1}^{k-2}$ 共轭正交。
+  
+
+工程中可以利用推论来进行算法优化. 
 
 
 
@@ -299,7 +389,7 @@ $$
 
 - **残差 离拟合目标b的距离**  The **residual** $r_{(i)}=b-A x_{(i)}$ indicates how far we are **from the correct value of $b$**. 
 
-- 记住这个  $r_{(i)}=-A e_{(i)}$,   **residual** as being the error transformed by $A$ into the same space as $b$. 
+- 关键公式  $r_{(i)}=-A e_{(i)}$,   **residual** as being the error transformed by $A$ into the same space as $b$. 
 
 - **residual 就是该点负梯度**. More importantly, $r_{(i)}=-f^{\prime}\left(x_{(i)}\right),$  **residual** as the **direction of steepest descent**.   residual本来就是梯度, 只是一次函数里面有了error, 然后有了r=-Ae转换
 
@@ -349,7 +439,28 @@ $$
 
 - Although Equation 10 is still needed to compute $r_{(0)}$, Equation 13 can be used for every iteration thereafter. The product $A r$, which occurs in both Equations 11 and 13 , need only be computed once. The disadvantage of using this recurrence is that the sequence defined by Equation 13 is generated without any feedback from the value of $x_{(i)},$ so that accumulation of floating point roundoff error may cause $x_{(i)}$ to converge to some point near $x$. This effect can be avoided by periodically using Equation 10 to recompute the correct residual.
 
- 
+  
+
+具体算法 
+$$
+\begin{aligned}  
+& i \Leftarrow 0 \\
+& r \Leftarrow b-A x \\
+&\delta \Leftarrow r^{T} r \\
+&\delta_{0} \Leftarrow \delta \\
+&\text { While } i<i_{\max } \text { and } \delta>\varepsilon^{2} \delta_{0} \text { do } \\
+&\quad\quad q \Leftarrow A r \\
+&\quad\quad \alpha \Leftarrow \frac{\delta}{r^{T} q} \\
+&\quad\quad x \Leftarrow x+\alpha r \\
+&\quad\quad \text { If } i \text { is divisible by } 50 \\
+&\quad\quad\quad\quad r \Leftarrow b-A x \\
+&\quad\quad \text { else } \\
+&\quad\quad\quad\quad r \Leftarrow r-\alpha q \\
+&\quad\quad \delta \Leftarrow r^{T} r \\
+&\quad\quad i \Leftarrow i+1 \\
+\end{aligned} 
+$$
+
 
 ##### Eigenvectors and Eigenvalues 用特征值特征向量解释
 
@@ -471,7 +582,7 @@ $$
 $$
   Any solution to this equation is an eigenvector; say, $v=[1,2]^{T} .$ By the same method, we find that $[-2,1]^{T}$ is an eigenvector corresponding to the eigenvalue $2$ .
 
-- **二次型的特征向量, 就是f(x)图像椭球体的两个轴, 两个特征值分别对应该方向的陡度steepness.** Figure  12, we see that these eigenvectors coincide with the axes of the familiar ellipsoid, and that a larger eigenvalue corresponds to a steeper slope.  (Negative eigenvalues indicate that $f$ decreases along the axis, as in Figures $5(b)$ and $5(d) .$ )
+- **直接想象一个特征向量与坐标轴重合的例子,就很容易理解.  二次型的特征向量, 就是f(x)图像椭球体的两个轴, 两个特征值分别对应该方向的陡度steepness.**  陡度可以理解为, 该方向走的长度 * 陡度 =上升的高度.这里注意, 特征值对应的是二次, 所以是长度的平方.  即两个方向从极值点走到相同的高度, 那所走路径的平方*特征值是一样的, 即 eAe 相等.     Figure  12, we see that these eigenvectors coincide with the axes of the familiar ellipsoid, and that a larger eigenvalue corresponds to a steeper slope.  (Negative eigenvalues indicate that $f$ decreases along the axis, as in Figures $5(b)$ and $5(d) .$ )
 
 -  **Jacobi Method** 求解例子. Using the constants specified by Equation $4,$ we have
 $$
@@ -589,13 +700,11 @@ $$
 
 ##### General Convergence 一般情况的收敛性
 
-- **能量范数** , 显然这个公式与普通的范数比,矢量中间有个矩阵A的变换,正好对应上面的A正交.   To bound the convergence of Steepest Descent in the general case, we shall define the **energy norm**
+- **能量范数** , 显然这个公式与普通的范数比,矢量中间有个矩阵A的变换.    To bound the convergence of Steepest Descent in the general case, we shall define the **energy norm**
   $\Vert e \Vert_{A}=\left(e^{T} A e\right)^{1 / 2}$.  
-
 - <img src="/img/2020-03-01-ConjugateGradient.assets/image-20200305031312203.png" alt="image-20200305031312203" style="zoom:50%;" />
-  
+- 图中两个特征向量的能量范数大小一样.   可以用个简单的二次型快速验证.  图中, 特征向量的长度是一次的, 范数不开根号是二次的,特征值是二次项的系数. 
 - 这里比欧式距离好用. This norm is easier to work with than the **Euclidean norm**, and is in some sense a more natural norm; examination of Equation 8 shows that **minimizing** $\Vert e_{(i)}\Vert_{A}$ is **equivalent** to  **minimizing** $f\left(x_{(i)}\right)$ .问题等价, f(x) 在某些方向求最小值, 就是error分量eAe的范数的最小值. 
-
 -  
 $$
   \begin{aligned}
@@ -625,21 +734,13 @@ $$
 $$
 
 - The value of $\omega$, which determines the rate of convergence of Steepest Descent, is graphed as a function of $\mu$ and $\kappa$ in Figure 17. 
-
 - ![image-20200304172047492](/img/2020-03-01-ConjugateGradient.assets/image-20200304172047492.png)
-
 - The graph confirms my two examples. If $e_{(0)}$ is an eigenvector, then the slope $\mu$ is zero (or infinite);  $\omega$ is zero, so convergence is instant. If the eigenvalues are equal, then the condition number $\kappa$ is one; again,  $\omega$ is zero.
-
 - ![image-20200304175938948](/img/2020-03-01-ConjugateGradient.assets/image-20200304175938948.png)
-
 - Figure 18 illustrates examples from near each of the four corners of Figure 17 
-
-- 有一条山脊线, 即上限, 收敛最慢   Holding $\kappa$ constant (because $A$ is fixed), a little basic calculus reveals that Equation 26 is maximized when $\mu = \pm \kappa$.  In Figure 17, one can see a faint ridge defined by this line. 
-
-- 直观, 对二次型, 最好的方向是特征向量方向, 最差的是在两个特征向量夹角中间的方向. Figure 19 plots worst-case starting points for our sample matrix $A$. These starting points fall on the lines defined by $\xi_2 / \xi_1 = \pm \kappa$.   
-
+- 由图像可知道 u=k 的时候, 有一条山脊线, 即上限, 收敛最慢   Holding $\kappa$ constant (because $A$ is fixed), a little basic calculus reveals that Equation 26 is maximized when $\mu = \pm \kappa$.  In Figure 17, one can see a faint ridge defined by this line. 
+- 直观, 对二次型, 最好的方向是特征向量方向, 最差的是在两个特征向量夹角中间的方向. Figure 19 plots worst-case starting points for our sample matrix $A$. These starting points fall on the lines defined by $\xi_2 / \xi_1 = \pm \kappa$.     即 $\xi_2 / \xi_1 = \lambda_{1} / \lambda_{2}$  直观来看, 对二维的情况, 即搜索方向是拆分为基于特征向量, 然后各方向系数是特性值反过来的话, 最慢. 如果不反过来, 那就更靠近陡的方向,收敛快.  
 - <img src="/img/2020-03-01-ConjugateGradient.assets/image-20200305033258116.png" alt="image-20200305033258116" style="zoom:67%;" />
-
 - upper bound for $\omega$ (corresponding to the worst-case starting points) is found by setting $\mu^{2}=\kappa^{2}:$
   
 $$
