@@ -15,7 +15,7 @@ tags:
 
 
 
-# Note on Reinforcement Learning
+# Note on "Reinforcement Learning: An Introduction"
 
 有点零碎, 待有空了整理汇总一下
 
@@ -1628,12 +1628,6 @@ $$
 
 
 #### Off-policy Learning Without Importance Sampling: The n-step Tree Backup
-
-
-
-
-
-
 
 
 
