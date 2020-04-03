@@ -3017,7 +3017,9 @@ sum_a 对所有的状态都是一样的，可以一层层拿进去, 最后可以
 
 $ Pr(s \to x,k,\pi) $ is the probability of transitioning  from state s to state x <u>in k steps</u> under policy $\pi$ 
 
-Pr 表示状态s在某一步的占比，所有步加起来就是在整个路径上的占比。
+Pr 表示状态s在某一步的占比，所有步加起来就是在整个路径上的占比。  
+显然, 这里的这个Pr也是策略$\pi$的函数.    
+这一系列操作就是将外层的Reward函数转化为 state分布的Pr函数.  剩下求导的部分只有对参数$\theta$ 的. 
 
  $\eta(s)$ 为在轨迹里面每一步遇到s的概率, 再求和, 也可以理解为在一个K步的轨迹中, 所出现的平均步数(次数), $\sum_{s'} \eta(s')$ 是一个正整数,即 episode的step数K
 

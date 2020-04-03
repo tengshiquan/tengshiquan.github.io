@@ -1059,11 +1059,13 @@ code,kbd,pre,samp {
 
 .intro-header .post-heading h1 {
 	font-size: 30px;
+	text-shadow: 0 0 16px black;
 	margin-bottom: 24px
 }
 
 .intro-header .post-heading .meta,.intro-header .post-heading .subheading {
 	line-height: 1.1;
+	text-shadow: 0 0 8px black;
 	display: block
 }
 
@@ -1078,8 +1080,9 @@ code,kbd,pre,samp {
 }
 
 .intro-header .post-heading .meta {
-	font-family: Lora,Times New Roman,serif;
+	font-family: Arial,PingFang SC,Lora,Times New Roman,serif;
 	font-style: italic;
+	text-shadow: 0 0 3px black;
 	font-weight: 300;
 	font-size: 16px
 }
@@ -1389,12 +1392,12 @@ img::-moz-selection,img::selection {
 
 .tags .tag,.tags a {
 	display: inline-block;
-	border: 1px solid hsla(0,0%,100%,.8);
+	border: 2px solid hsla(0,0%,100%,.8);
 	border-radius: 999em;
 	padding: 0 10px;
 	color: #fff;
 	line-height: 24px;
-	font-size: 12px;
+	font-size: 16px;
 	text-decoration: none;
 	margin: 0 1px;
 	margin-bottom: 6px;
