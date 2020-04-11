@@ -994,6 +994,7 @@ code,kbd,pre,samp {
 	margin-bottom: 15px
 }
 
+
 .intro-header.style-text .tags .tag,.intro-header.style-text .tags a {
 	border-color: #404040;
 	color: #404040
@@ -1059,7 +1060,7 @@ code,kbd,pre,samp {
 
 .intro-header .post-heading h1 {
 	font-size: 30px;
-	text-shadow: 0 0 16px black;
+	text-shadow: 0 0 12px black;
 	margin-bottom: 24px
 }
 
