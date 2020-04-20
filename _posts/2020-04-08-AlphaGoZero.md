@@ -16,24 +16,24 @@ tags:
 
 # AlphaGo Zero
 
-
-
 ## Mastering the game of Go without human knowledge
 
 没有专家棋谱, 完全从zero开始.
 
 AlphaGo Zero, 与AlphaGo Fan和AlphaGo Lee的差异: 
 
-1. trained by self-play RL, starting from random play
-2. 只使用棋盘盘面作为输入特征
+1. No human data, trained by self-play RL, starting from random play
+2. No hand-crafted features, 只使用棋盘盘面作为输入特征
 3. 只使用一个NN
 4. 使用了一个简化版 tree search,  没有Monte Carlo rollouts
 
 
 
-
-
 <img src="https://lh3.googleusercontent.com/atTt6Okt1LQIjIAF225ptfDdCtndp-OD4ZNPAmxTEAESk-sRvQg0cHbULyxh4wci7QH_TD3jIMGWMraOZHPW-C9UU6ZUx9jN4yms3g=w1440" alt="img" style="zoom:50%;" />
+
+
+
+board games do not satisfy the Markov property
 
 
 
@@ -76,13 +76,15 @@ train NN :  self-play RL , use MCTS play each move.
 
 
 
-program plays a game $s_{1}, \ldots, s_{T}$ against itself. In each position $s_{t}$ an MCTS $\alpha_{\theta}$ is executed (see Fig. 2 ) using the latest neural network $f_{\theta} .$ Moves are selected according to the search probabilities computed by the MCTS, $a_{t} \sim \pi_{t} .$ The terminal position $s_{T}$ is scored according to the rules of the game to compute the game winner $z . \mathbf{b},$ Neural network training in AlphaGo Zero. The neural network takes the raw board position $s_{t}$ as its input, passes it through many convolutional layers with parameters $\theta$ and outputs both a vector $p_{t}$, representing a probability distribution over moves, and a scalar value $v_{t},$ representing the probability of the current player winning in position $s_{t}$. The neural network parameters $\theta$ are updated to maximize the similarity of the policy vector $p_{t}$ to the search probabilities $\pi_{t},$ and to minimize the error between the predicted winner $v_{t}$ and the game winner $z$ (see equation (1)). The new parameters are used in the next iteration of self-play as in a.
-
-
-
-
-
 MCTS:
+
+- **Monte Carlo**: Randomly trying things, e.g. throwing dice.
+
+- **Tree Search**: Searching the various “leaves” of the “tree” of possibilities.
+- **Node**: State 
+- **Edge**: Action
+
+
 
 ![image-20200414182439143](/img/2020-04-07-AlphaGo.assets/image-20200414182439143.png)
 
@@ -95,7 +97,13 @@ MCTS跟alphaGo的差不多一样.
 
 
 MCTS 可以看做 self-play 算法.  给定 $\theta$ ,  根节点$s$,  输出action序列$\boldsymbol{\pi}=\alpha_{\theta}(s)$   
-a的几率正比于 $\pi_{a} \propto N(s, a)^{1 / \tau},$   $\tau$ : temperature parameter. 
+action被选中的几率正比于 $\pi_{a} \propto N(s, a)^{1 / \tau},$   $\tau$ : temperature parameter. 
+
+
+
+关键不一样的点  
+对于新创建的子节点，需要评估该节点所代表的状态的价值。evaluate的时候,  alphago采用混合机制对状态价值进行估计： $V\left(s_{L}\right)=(1-\lambda) v_{\theta}\left(s_{L}\right)+\lambda z_{L}$ , 其中，第一部分是以节点状态为输入价值网络的输出，第二部分是从该节点状态开始使用快速走子策略（fast rollout policy）走出的胜负结果，若超过一定的步数，则计算分数。  
+**zero版本只使用网络的价值输出作为拓展节点的价值估计**。所以zero版本中不需要rollouts
 
 
 
@@ -185,27 +193,43 @@ AlphaGo Zero在自我博弈训练过程中达到了围棋的新高度。  棋理
 
 ##### Reinforcement learning
 
-Policy iteration  理论部分,  主要讨论MCTS的意义
+Policy iteration  理论部分,  主要讨论MCTS的意义;  MCTS 首先是一个基于统计的policy,  其次, MCTS也可以引入启发式策略来改进. 而NN本身做为一个策略, 也可以作为启发式的部分结合到MCTS里面去. 
 
-**Classification­-based reinforcement learning** **improves** the policy using a simple **Monte Carlo search**. Many **rollouts** are executed for each action; the action with the **maximum mean value** provides a positive training example, while all other actions provide negative training examples; **a policy is then trained to classify actions as positive or negative, and used in subsequent rollouts.** This may be viewed as a precursor to the policy component of AlphaGo Zero’s training algorithm when $\tau \to 0$.    
-这里,  rollout 即 扮演了 生成sample的角色,  然后 select action 时, 选了max,  所以相当于一个 greedy improve; 下面网络拟合Fit ,  即是evaluate也是improve的过程;  
+基于分类的RL算法, 通过 **Monte Carlo search**来improve.  **Classification­-based reinforcement learning**   improves the policy using a simple **Monte Carlo search**. Many **rollouts** are executed for each action; the action with the **maximum mean value** provides a positive training example, while all other actions provide negative training examples; **a policy is then trained to classify actions as positive or negative, and used in subsequent rollouts.** This may be viewed as a precursor to the policy component of AlphaGo Zero’s training algorithm when $\tau \to 0$.    
+这里,  在rollout中如何选择action没有提及. 这里的rollout 扮演了 生成sample,  然后policy evaluation的角色. 如果policy本身 select action 时, 选了max,  所以相当于一个 greedy improve; 下面网络拟合Fit ,  即是evaluate也是improve的过程;  
  **MC rollout + NN** , 所以对Fit , data improve, net improve
 
-**classification­ based modified policy iteration (CBMPI)**, also performs **policy evaluation** by regressing a value function towards truncated rollout values, similar to the value component of AlphaGo Zero; this achieved state­-of­-the­-art results in the game of Tetris. However, this previous work was limited to **simple rollouts** and **linear function approximation** using **hand­ crafted features**.  三个短板
+较新的的一个例子, **classification­ based modified policy iteration (CBMPI)**, also performs **policy evaluation** by regressing a value function towards truncated rollout values, similar to the value component of AlphaGo Zero; this achieved state­-of­-the­-art results in the game of Tetris. However, this previous work was limited to **simple rollouts** and **linear function approximation** using **hand­ crafted features**.  三个短板
 
-The AlphaGo Zero **self­play** algorithm can similarly be understood as an **approximate policy iteration** scheme in which **MCTS** is used for both policy improvement and policy evaluation. Policy improvement starts with a neural network policy, executes an MCTS based on that policy’s recommendations, and then <u>projects the (much stronger) search policy back into the function space of the neural network</u>. <u>Policy evaluation is applied to the (much stronger) search policy</u> : the outcomes of self­play games are also projected back into the function space of the neural network. These projection steps are achieved by training the neural network parameters to match the search probabilities and self­play game outcome respectively.  
-MCTS 算子 ,  ??  Policy improve:  NN Policy  *  MCTS  = NN + ,  Policy evaluation:  selfplay games data, (search probabilities, outcome) , fit 也是映射到NN+  ;   PI部分有点说不通    
-MCTS 保存着N和Q 
+The AlphaGo Zero **self­play** algorithm can similarly be understood as an **approximate policy iteration** scheme in which **MCTS** is used for **both policy improvement and policy evaluation**.   
+**Policy improvement** starts with a neural network policy, executes an MCTS based on that policy’s recommendations, and then projects the (much stronger) search policy back into the function space of the neural network.  
+**Policy evaluation** is applied to the (much stronger) search policy : the outcomes of self­play games are also projected back into the function space of the neural network. These projection steps are achieved by training the neural network parameters to match the search probabilities and self­play game outcome respectively. 即target $(\boldsymbol{\pi}, z)$  
+AlphaGo Zero 的selfplay 也可以看做近似 策略迭代GPI, 在其中MCTS 算子 :PE+PI 两个角色.    
+Policy improve:  NN Policy $(\mathbf{p}, v)=f_{\theta}(s)$  作为  MCTS 的启发式部分  =  更强的策略  $(\boldsymbol{\pi}, z)$   
+Policy evaluation:  selfplay 产出的 data $(\boldsymbol{\pi}, z)$ ,  NN去fit  
 
-Guo et al.7 also project the output of MCTS into a neural network, either by regressing a value network towards the search value, or by classifying the action selected by MCTS. This approach was used to train a neural network for playing Atari games; however, the MCTS was fixed—there was no policy iteration—and did not make any use of the trained networks.   之前别人做的,  MCTS产出 (p, v) 用来fit. 
-
-
-
-
-
+Guo的论文中, 将MCTS的产出映射的到一个NN, 通过基于action的分类或者V值的回归.   MCTS产出 $(\boldsymbol{\pi}, z)$ , NN用来fit.  但这里, MCTS是固定算法, 纯粹的基于统计, 没有利用NN来选择action. Guo et al.7 also project the output of MCTS into a neural network, either by regressing a value network towards the search value, or by classifying the action selected by MCTS. This approach was used to train a neural network for playing Atari games; however, the MCTS was fixed—there was no policy iteration—and did not make any use of the trained networks.   
 
 
 
+#### Self-play reinforcement learning in games
+
+我们的方法最直接适用于完美信息的零和博弈。
+Self-play强化学习之前已经被应用到围棋游戏中。NeuroGo 使用了一个神经网络来表示值函数，通过时差学习训练，预测对弈中的领地。RLGO，用一个线性特征组合来表示值函数，枚举了所有3×3的棋子模式；通过时差学习训练,来预测对弈中的赢家。NeuroGo和RLGO都取得了较弱的业余水平。
+
+MCTS也可以被看作是一种self­play强化学习的形式。搜索树的节点包含了搜索过程中遇到的位置的值函数；这些值被更新，以预测模拟的自我博弈的赢家。MCTS程序以前在围棋中取得了很强的业余水平，但使用了大量的领域知识：基于手工特征的fast rollout policy，通过运行模拟直到棋局结束来评估位置；以及同样基于手工特征的tree policy，在搜索树内选择moves。  
+Self-play强化学习方法已经在其他游戏中取得了很高的成功率：象棋..   在所有这些例子中，通过回归或时差学习，从Self-play产生的训练数据中训练出一个值函数。训练好的值函数被用作evaluation函数, 使用在alpha–beta 搜索、简单的蒙特卡洛搜索 或 counterfactual regret minimization。然而，这些方法使用手工的输入特征 或手工的特征模板。此外，学习过程中使用监督学习来初始化权重，手工选择棋子值的权重，对动作空间进行手工限制，或者使用已有的程序作为训练对手，或者生成游戏记录。 
+
+许多最成功、最广泛使用的强化学习方法都是在零和游戏的背景下首次引入的：时差学习首次被引入到跳棋程序中，而MCTS被引入到围棋游戏中。然而，非常类似的算法后来被证明在视频游戏、机器人、工业控制和在线推荐系统中非常有效。
+
+
+
+#### AlphaGo versions
+
+- AlphaGo Fan:  176个GPU,  分布式
+- AlphaGo Lee: 48个TPU, 分布式
+- AlphaGo Master:  使用了与Lee 相同的手工特征和rollouts
+- AlphaGo Zero:  no rollouts  , 4 TPU
 
 
 
@@ -223,7 +247,82 @@ MCTS search parameters were selected by Gaussian process optimization, so as to 
 
 
 
+#### Self-play training pipeline
 
+三个主要部分组成，所有这些都是异步并行执行的。
+
+1. 神经网络参数$θ_i$会从最近的self-play数据中不断优化
+2. AlphaGo Zero的棋手$α_{θ_i}$会不断被评估
+3. 而到目前为止表现最好的棋手$α_{θ_*}$会被用来生成新的self-play数据。
+
+
+
+##### Optimization  
+
+关于优化部分的一些超参.
+
+Each neural network $f_{\theta_{i}}$ is optimized on the Google Cloud using TensorFlow, with 64 GPU workers and 19 CPU parameter servers. The batch-size is 32 per worker, for a total mini-batch size of 2048. Each mini-batch of data is sampled uniformly at random from all positions of the most recent 500,000 games of self-play. Neural network parameters are optimized by stochastic gradient descent with momentum and learning rate annealing, using the loss in equation (1). The learning rate is annealed according to the standard schedule in Extended Data Table 3. The momentum parameter is set to 0.9. The cross-entropy and MSE losses are weighted equally (this is reasonable because rewards are unit scaled, $r \in\{-1,+1\})$ and the $L 2$ regularization parameter is set to $c=10^{-4} $ .   
+The optimization process produces a new checkpoint every 1,000 training steps. This checkpoint is evaluated by the evaluator and it may be used for generating the next batch of self-play games, as we explain next. 
+
+##### Evaluator
+
+为了确保总是生成最佳质量的数据，我们在将每个新的神经网络checkpoint与当前的最佳网络$f_{\theta *}$进行比较，然后再将其用于数据生成。通过MCTS search $$\alpha_{\theta_{i}}$$的性能来评估神经网络$$f_{\theta_{i}}$$，MCTS使用$f_{\theta_{i}}$来评估叶子节点的局面以及各个action的概率 。每次评估包括400局，使用一个有1600个模拟的MCTS来选择每一步棋，使用一个无限小的温度$\tau \rightarrow 0$（也就是说，我们决定性地选择访问次数最大的棋子，以给出可能的最强下法）。如果新的player以>55%的幅度取胜（为了避免噪声干扰），那么它就成为最佳player $$\alpha_{\theta_*}$$，随后被用于self­play的生成，也成为后续比较的baseline。
+
+##### Self-play
+
+在每一次迭代中，$$\alpha_{\theta_*}$$进行25,000次self­play，使用1,600次模拟MCTS来选择每一步棋（这需要每次搜索约0.4s）。对于每局棋的前30步棋，温度被设置为$\tau=1$；这将根据MCTS中的访问次数按比例选择move，并确保能访问多样性的局面。在棋局的剩下部分中，使用的是无限小的温度，$\tau \rightarrow 0$。通过在根节点$s_0$的先验概率中加入Dirichlet噪声来实现额外的探索，具体来说，$P(s, a)= (1-\varepsilon) p_{a}+\varepsilon \eta_{a}$ ,where $\boldsymbol{\eta} \sim \operatorname{Dir}(0.03)$ and $\varepsilon=0.25$；这个噪声保证了所有的move都可能被尝试，但搜索仍然可能会否决坏棋。   
+为了节省计算量，显然输掉的棋局都会被放弃。resignation阈值$v_\text{resign}$是自动选择的，以保持假阳性（如果AlphaGo没有弃权，可能会赢的棋子）低于5%。为了测量假阳性率，我们在10%的自选对局中禁用弃权，直到终止。
+
+
+
+##### Supervised learning
+
+为了比较，我们还通过监督学习训练了神经网络参数$\theta_{\mathrm{SL}}$。神经网络的架构与AlphaGo Zero相同。我们从KGS数据集中随机抽取了Mini-batche $(s, \pi, z)$，对人类专家棋谱中的 move a设置 $\pi_{a}=1$ 。学习率退火, 带动量的SGD来优化参数.  动量参数被设置为0.9，L2正则化参数被设置为$c=10^{-4}$ .  loss公式跟上面一样, MSE component by a factor of 0.01. 
+通过使用策略和值网络的组合，并通过使用低权重的value component，可以避免对values的过度拟合。在72 h后，move预测的准确率超过了之前的工作，在KGS测试集上达到了60.4%；value预测误差也比之前的有很大的提高
+
+
+
+#### Search algorithm
+
+AlphaGo Zero使用了AlphaGo Fan和AlphaGo Lee中使用的异步asynchronous policy and value MCTS algorithm (APVMCTS) 的一个更简单的变体。
+
+搜索树中的每个节点s包含所有合法行为$a \in \mathcal{A}(s)$的边$(s, a)$。每个边存储了一组统计信息。
+$$
+\{N(s, a), W(s, a), Q(s, a), P(s, a)\}
+$$
+where $N(s, a)$ is the visit count, $W(s, a)$ is the total action value, $Q(s, a)$ is the mean action value and $P(s, a)$ is the prior probability of selecting that edge. 
+
+多个模拟在不同的搜索线程上并行执行。该算法通过三个阶段的迭代进行，然后选择下一步棋。 注意下面都是异步执行的.
+
+##### Select (Fig. 2a)
+
+每个模拟的第一个树内阶段从搜索树的根节点$s_0$开始，当模拟到达一个叶子节点 $s_{L}$ 的时间步数L时结束。在每个time-steps, $t<L$, 按照 $a_{t}=\arg \max \left(Q\left(s_{t}, a\right)+U\left(s_{t}, a\right)\right)$  选择action.  使用 **PUCT** 算法的变体.
+$$
+U(s, a)=c_{\text {puca }} P(s, a) \frac{\sqrt{\Sigma_{b} N(s, b)}}{1+N(s, a)}
+$$
+其中$c_{\text {puct}}$ 是一个决定探索水平的常数；这种搜索控制策略最初倾向于高先验概率和低访问量的行动，但逐渐地倾向于高行动值的行动。
+
+##### Expand and evaluate (Fig. 2b​)
+
+叶节点 $s_{L}$ 被添加到神经网络的工作队列中进行评估 $\left(d_{i}(\boldsymbol{p}), v\right)=f_{\theta}\left(d_{i}\left(s_{L}\right)\right)$ , where $d_{i}$ is a dihedral reflection or rotation selected uniformly at random from $i$ in $[1..8]$  .   
+队列中的Positions由神经网络进行评估, mini-batch:8；搜索线程被锁定，直到评估完成。
+
+叶子节点被展开, 每条边$\left(s_{L}, a\right)$  被初始化为 $$\left\{N\left(s_{L}, a\right)=0, W\left(s_{L}, a\right)=0, Q\left(s_{L}, a\right)=0, {P}\left(s_{L}, a\right)=p_{a}\right\} $$;  然后value $v$ is backed up.
+
+##### Backup (Fig. 2c)
+
+向上更新所有的值. The edge statistics are updated in a backward pass through each step $t \leq L$.   
+The visit counts are incremented, $N\left(s_{t}, a_{t}\right)=N\left(s_{t}, a_{t}\right)+1,$ and the action value is updated to the mean value, $$W\left(s_{t}, a_{t}\right)=W\left(s_{t}, a_{t}\right)+v, Q\left(s_{t}, a_{t}\right)=\frac{W\left(s_{t}, a_{t}\right)}{N\left(s_{t}, a_{t}\right)}$$
+We use virtual loss to ensure each thread evaluates different nodes . 
+
+##### Play (Fig. 2d)
+
+在搜索结束时，AlphaGo Zero会选择在根部位置$s_0$ 中下一步棋，与它的指数化访问次数成正比$\pi\left(a | s_{0}\right)=N\left(s_{0}, a\right)^{1 / \tau} / \sum_{h} N\left(s_{0}, b\right)^{1 / \tau} $ ,    $\tau$用于控制探索水平。搜索树在随后的时间步中被重复使用:  
+与下棋动作相对应的子节点成为新的根节点；在这个子节点下面的子树连同它的所有统计数据一起被保留，而树的其余部分被丢弃。AlphaGo Zero 认输, 如果其根节点的值和最佳子节点的值低于阈值 $v_{\text {resign: }}$
+
+与AlphaGo Fan和AlphaGo Lee中的MCTS相比，主要区别在于：AlphaGo Zero不使用任何rollouts；它使用单一的神经网络，而不是单独的策略和值网络；叶子节点总是扩展，而不是使用动态扩展；每个搜索线程只需等待神经网络评估，而不是异步执行评估和backup；没有tree policy。
+
+在AlphaGo Zero的大型（40块，40天）实例中也使用了transposition table。 
 
 
 
@@ -234,28 +333,30 @@ MCTS search parameters were selected by Gaussian process optimization, so as to 
 
 
 
-<img src="2020-04-08-AlphaGoZero.assets/image-20200417025045654.png" alt="image-20200417025045654" style="zoom: 50%;" />
+<img src="/img/2020-04-07-AlphaGo.assets/image-20200417025045654.png" alt="image-20200417025045654" style="zoom: 50%;" />
 
 
 
-![img](2020-04-08-AlphaGoZero.assets/1*WqwAVtTzYNQnlDEf2iJnsg.png)
+![img](/img/2020-04-07-AlphaGo.assets/1*WqwAVtTzYNQnlDEf2iJnsg.png)
 
 
 
-<img src="../img/2020-04-07-AlphaGo.assets/alphago-zero-sketch.jpeg" alt="img" style="zoom: 33%;" />
+<img src="/img/2020-04-07-AlphaGo.assets/alphago-zero-sketch.jpeg" alt="img" style="zoom: 33%;" />
 
 其他也有用 resnet 训练围棋的, 不过只是 SL, 输出只有policy.
 
 
 
-#### Neural network architecture comparison
+#### Neural network architecture comparison 网络结构比较
 
-- dual–res: contains a 20 block residual tower, followed by both a policy head and a value head.  used in **AlphaGo Zero**.
-- sep–res: two 20 block residual towers. The first tower is followed by a policy head and the second tower is followed by a value head.
-- dual–conv: a nonresidual tower of 12 convolutional blocks, followed by both a policy head and a value head.
-- sep–conv: the network contains two nonresidual towers of 12 convolutional blocks. The first tower is followed by a policy head and the second tower is followed by a value head. used in **AlphaGo Lee**.
+几个alphago版本的网络机构的异同:
 
-都是用的selfplay数据训练. 超参用的SL里面的. Each network was trained on a fixed dataset containing the final 2 million games of selfplay data generated by a previous run of AlphaGo Zero, using stochastic gradient descent with the annealing rate, momentum and regularization hyperparameters described for the supervised learning experiment; however, crossentropy and MSE components were weighted equally, since more data was available.
+- **dual–res**: contains a 20 block residual tower, followed by both a policy head and a value head.  used in **AlphaGo Zero**.
+- **sep–res**: two 20 block residual towers. The first tower is followed by a policy head and the second tower is followed by a value head.
+- **dual–conv**: a nonresidual tower of 12 convolutional blocks, followed by both a policy head and a value head.
+- **sep–conv**: the network contains two nonresidual towers of 12 convolutional blocks. The first tower is followed by a policy head and the second tower is followed by a value head. used in **AlphaGo Lee**.
+
+都是用的AlphaGo Zero selfplay产生的数据训练. 超参用的SL里面的: Each network was trained on a fixed dataset containing the final 2 million games of selfplay data generated by a previous run of AlphaGo Zero, using stochastic gradient descent with the annealing rate, momentum and regularization hyperparameters described for the supervised learning experiment; however, crossentropy and MSE components were weighted equally, since more data was available.
 
 
 
@@ -265,34 +366,47 @@ Elo 评分标准.
 
 
 
+**extended data table 1** | **Move prediction accuracy**
 
-
-leaf node $s_{L}$ at time-step $L$. At each of these time-steps, $t<L,$ an action is selected according to the statistics in the search tree, $a_{t}=\arg \max \left(Q\left(s_{t}, a\right)+U\left(s_{t}, a\right)\right)$ using a variant of the PUCT algorithm $^{24}$,
 $$
-U(s, a)=c_{\text {puca }} P(s, a) \frac{\sqrt{\Sigma_{b} N(s, b)}}{1+N(s, a)}
+\begin{array}{llll}
+\hline & K G S \text { train } & K G S \text { test } & \text {GoKifu validation} \\
+\hline \text { Supervised learning (20 block) } & 62.0 & 60.4 & 54.3 \\
+\text { Supervised learning (12 layer }^{12} \text { ) } & 59.1 & 55.9 & - \\
+\text { Reinforcement learning (20 block) } & - & - & 49.0 \\
+\text { Reinforcement learning (40 block) } & - & - & 51.3 \\
+\hline
+\end{array}
 $$
-where $c_{\text {puct is a constant determining the level of exploration; this search control }}$ strategy initially prefers actions with high prior probability and low visit count, but asympotically prefers actions with high action value. Expand and evaluate (Fig. $2 b$ ). The leaf node $s_{L}$ is added to a queue for neural network evaluation, $\left(d_{i}(\boldsymbol{p}), v\right)=f_{\theta}\left(d_{i}\left(s_{L}\right)\right),$ where $d_{i}$ is a dihedral reflection or rotation selected uniformly at random from $i$ in $[1.8] .$ Positions in the queue are evaluated by the neural network using a mini-batch size of $8 ;$ the search thread is locked until evaluation completes. The leaf node is expanded and each edge $\left(s_{L}, a\right)$ is initialized to $\left\{N\left(s_{L}, a\right)=0, W\left(s_{L}, a\right)=0, Q\left(s_{I}, a\right)=0, \widetilde{P}\left(s_{I}, a\right)=p_{a}\right\} ;$ the value $v$ is then backed up.
-Backup (Fig. $2 \mathrm{c}$ ). The edge statistics are updated in a backward pass through each step $t \leq L$. The visit counts are incremented, $N\left(s_{t}, a_{t}\right)=N\left(s_{t}, a_{t}\right)+1,$ and the action value is updated to the mean value, $W\left(s_{t}, a_{t}\right)=W\left(s_{t}, a_{t}\right)+v, Q\left(s_{t}, a_{t}\right)=\frac{W\left(s_{t}, a_{t}\right)}{N\left(s_{t}, a_{t}\right)}$
-We use virtual loss to ensure each thread evaluates different nodes $^{12,69}$. Play (Fig. 2d). At the end of the search AlphaGo Zero selects a move $a$ to play in the root position $s_{0},$ proportional to its exponentiated visit count, $\pi\left(a | s_{0}\right)=N\left(s_{0}, a\right)^{1 / \tau} / \sum_{h} N\left(s_{0}, b\right)^{1 / \tau},$ where $\tau$ is a temperature parameter that controls the level of exploration. The search tree is reused at subsequent time-steps:
-the child node corresponding to the played action becomes the new root node; the subtree below this child is retained along with all its statistics, while the remainder of the tree is discarded. AlphaGo Zero resignsifits root value and best child value are lower than a threshold value $v_{\text {resign: }}$
 
-Compared to the MCTS in AlphaGo Fan and AlphaGo Lee, the principal differences are that AlphaGo Zero does not use any rollouts; it uses a single neural network instead of separate policy and value networks; leaf nodes are always expanded, rather than using dynamic expansion; each search thread simply waits for the neural network evaluation, rather than performing evaluation and backup asynchronously; and there is no tree policy. A transposition table was also used in the large (40 blocks, 40 days) instance of AlphaGo Zero.  
+通过强化学习（即AlphaGo Zero）或监督学习训练的神经网络的下法预测准确率百分比。对于有监督学习，在KGS数据上训练了3天的神经网络（业余比赛）；比较结果也来自参考文献12。对于强化学习，20-block 网络被训练了3天，40-block 网络被训练了40天。网络也在基于GoKifu数据集中的职业比赛的验证集上进行了评估。
 
+**extended data table 2** | **Game outcome prediction error**
+$$
+\begin{array}{llll}
+\hline & K G S \text { train } & K G S \text { test } & \text {GoKifu validation} \\
+\hline \text { Supervised learning (20 block) } & 0.177 & 0.185 & 0.207 \\
+\text { Supervised learning (12 layer }^{12} \text { ) } & 0.19 & 0.37 & - \\
+\text { Reinforcement learning (20 block) } & - & - & 0.177 \\
+\text { Reinforcement learning (40 block) } & - & - & 0.180 \\
+\hline
+\end{array}
+$$
 
+**extended data table 3** | **Learning rate schedule**
 
-
-
-
-
-The input features $s_{t}$ are processed by a residual tower that consists of a single convolutional block followed by either 19 or 39 residual blocks $^{4}$. The convolutional block applies the following modules:
-(1) A convolution of 256 filters of kernel size $3 \times 3$ with stride 1
-(2) Batch normalization $^{18}$
-(3) A rectifier nonlinearity
-
-
-
-
-
+$$
+\begin{array}{ccc}
+\hline \text { Thousands of steps } & \text { Reinforcement learning } & \text { Supervised learning } \\
+\hline 0-200 & 10^{-2} & 10^{-1} \\
+200-400 & 10^{-2} & 10^{-2} \\
+400-600 & 10^{-3} & 10^{-3} \\
+600-700 & 10^{-4} & 10^{-4} \\
+700-800 & 10^{-4} & 10^{-5} \\
+>800 & 10^{-4} & - \\
+\hline
+\end{array}
+$$
 
 
 
