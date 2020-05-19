@@ -10,6 +10,7 @@ tags:
     - AI
     - Game Theory 
     - Imperfect Information
+    - Alberta
     - Texas
 
 ---
@@ -18,7 +19,7 @@ tags:
 
 # Approximating Game-Theoretic Optimal Strategies for Full-scale Poker
 
-2003 
+2003  from Alberta
 
 **abstraction** 这种技术感觉更多是**简化**的意思.  本文针对德州这个游戏的特性,对各个阶段的玩法进行简化来计算策略. 
 
@@ -86,7 +87,7 @@ Shi和Littman，2001]研究了**抽象abstraction**技术，利用扑克牌的�
 
 
 
-<img src="2020-04-17-Abstraction.assets/image-20200511184409487.png" alt="image-20200511184409487" style="zoom:50%;" />
+<img src="/img/2020-04-17-Abstraction.assets/image-20200511184409487.png" alt="image-20200511184409487" style="zoom:50%;" />
 
 
 
@@ -146,7 +147,7 @@ Alex Selby计算出了一个最优解，用于*preflop* Hold'em的游戏，它�
 
 虽然imperfect information game tree的节点在一般情况下不是独立的，但也可以进行一些分解 decomposition 。例如，由不同的preflop betting sequences 产生的子树不能再有属于同一信息集的节点。 只要给出适当的先决条件作为输入，我们的postflop models的子树就可以独立计算。不幸的是，要知道正确的条件概率通常需要解出整个游戏，所以分解没有任何好处。 即, 第一轮什么样的bet , 对应后面什么样的变化, 这个对应的概率是无法得到的.
 
-<img src="2020-04-17-Abstraction.assets/image-20200512023830930.png" alt="image-20200512023830930" style="zoom:50%;" />
+<img src="/img/2020-04-17-Abstraction.assets/image-20200512023830930.png" alt="image-20200512023830930" style="zoom:50%;" />
 
 对于简单的postflop models,，我们放弃了先验概率prior probabilities。对于PsOpti0和PsOpti1中使用的postflop models，我们简单地忽略了第一轮下注 的影响，假设每个玩家的所有可能的hands都是统一分布的。我们计算了postflop 的解, 对2、4、6和8的初始底池大小（对应于0、1、2、3 raises的preflop sequences，但忽略了是哪个玩家首先加注）。在PsOpti1中，四种postflop solutions被简单地附加到Selby preflop strategy中（图2）。虽然这些简化的假设在技术上是错误的，但最终的玩法仍然是令人惊讶的有效。
 
@@ -176,7 +177,7 @@ Alex Selby计算出了一个最优解，用于*preflop* Hold'em的游戏，它�
 
 最后需要将抽象的游戏与真实game tree 区分开来的是转移概率*transition probabilities*。在flop和turn之间的概率节点代表着从剩余的45张牌库中拿出一张特定的牌。在抽象博弈中，没有牌，只有buckets。在抽象博弈中，turn card的作用是决定了从flop时的one pair of buckets的概率到 turn的时候 任意pair of buckets的概率。因此，博弈树中的概率节点的集合由一个 n * n 到 n * n的过渡网络表示，如图3所示。对于postflop model，这可以通过走遍整个树，枚举少量characteristic flop的所有transitions来估计。对于preflop model，完整的枚举是比较昂贵的(枚举所有可能的flop, 48选3=17296个flop)，所以可以通过取样或(并行)枚举截断tree来估计。
 
-<img src="2020-04-17-Abstraction.assets/image-20200512031908381.png" alt="image-20200512031908381" style="zoom:50%;" />
+<img src="/img/2020-04-17-Abstraction.assets/image-20200512031908381.png" alt="image-20200512031908381" style="zoom:50%;" />
 
 
 
@@ -205,7 +206,7 @@ Win rates are measured in small bets per hand (sb/h) .
 
 由于伪最佳策略不做对手建模，所以不能保证它们在面对非常糟糕或高度可预测的棋手时特别有效。它们必须只依靠这些基本的策略错误，结果胜率可能会相对不高。
 
-<img src="2020-04-17-Abstraction.assets/image-20200512193146739.png" alt="image-20200512193146739" style="zoom:50%;" />
+<img src="/img/2020-04-17-Abstraction.assets/image-20200512193146739.png" alt="image-20200512193146739" style="zoom:50%;" />
 
 所有的 pseudo-optima玩家都比之前的任何计算机程序都要玩得好得多。即使是PsOpti0，它的设计并不是为了玩完整的游戏，但它从postflop betting rounds中赚取了足够的利润，以抵消preflop round的EV损失（它从不加注好牌，也不fold坏牌）。
 
