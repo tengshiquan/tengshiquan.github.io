@@ -19,7 +19,17 @@ tags:
 
 # DeepStack: Expert-Level Artificial Intelligence in Heads-Up No-Limit Poker
 
-2017  from Alberta
+2017  Moravcik  from Alberta
+
+
+
+
+
+Deepstack 是第一个在 heads-up (two player) no-limit Texas hold'em 中打败人类高手的AI.
+
+DeepStack 的训练使用了 175 个 core years——相当于运行一个处理单元 150 年或运行几百台计算机几个月。而在比赛过程中，它可以在单一一台笔记本上工作。而 Libratus 则相反，在比赛之前和比赛过程中都使用了一台超级计算机，相当于大约 2900 个 core years。
+
+
 
 
 
@@ -49,7 +59,7 @@ DeepStack采取了一种根本不同的方法。它继续使用CFR的递归推�
 
 DeepStack是一个用于一大类 不完全信息序列博弈sequential imperfect information games 的通用算法。为了清楚起见，我们将在HUNL游戏中描述它的原理。扑克游戏的状态可以分为玩家的私人信息(两张牌面朝下发的手牌)和公开状态(由牌面朝上的牌和玩家的下注动作序列组成)。游戏中可能的公开状态序列形成了一个**公开树 public tree**，每个公开状态都有一个相关的公开子树（图1）。
 
-![Fig. 1 – Poker Game Tree](2020-04-16-DeepStack.assets/DeepStack-F1.jpg)
+![Fig. 1 – Poker Game Tree](/img/2020-04-16-DeepStack.assets/DeepStack-F1.jpg)
 
 
 
@@ -64,7 +74,7 @@ DeepStack 的目标: low-exploitability strategy ,  solve for an approximate Nas
 DeepStack 三部分组成:  
 
 1. a sound local strategy computation for the current public state
-2. depth-limited lookahead using a learned value func- tion to avoid reasoning to the end of the game
+2. depth-limited lookahead using a learned value function to avoid reasoning to the end of the game
 3. a restricted set of lookahead actions
 
 从概念层次看, 这3个都属于heuristic search.
@@ -75,7 +85,7 @@ DeepStack的核心是 **持续再解决continual re-solving**，这是一个完�
 
 
 
-![Fig. 2 – DeepStack Operation](2020-04-16-DeepStack.assets/DeepStack-F2.jpg)
+![Fig. 2 – DeepStack Operation](/img/2020-04-16-DeepStack.assets/DeepStack-F2.jpg)
 
 (A) DeepStack在公开树中的推理, 输出 在公开状态中它可能持有的所有牌组对应 行动概率。它维护两个向量：自己的范围和对手的counterfactual值。随着游戏的进行，执行一个action后, 通过贝叶斯法则计算出的行动概率, 更新自己的范围。对手的counterfactual值会在 "持续再求解 "中讨论过的那样更新。当它必须采取行动时，为了计算出行动概率，它使用自己的范围和对手的counterfactual值进行重解。为了使重解更容易，它限制了玩家的可操作性，并且lookahead被限制到回合结束。在重解过程中，超出其 lookahead 的公开状态的counterfactual值会使用 DeepStack 的学习评价函数进行近似。  
 (B) 评估函数用神经网络表示，该神经网络以迭代中的公开状态和范围作为输入，并输出两个玩家的counterfactual值（图3）。  
@@ -146,7 +156,7 @@ DeepStack要在不完美的信息游戏中融入启发式搜索思想，需要�
 
 两个独立的网络被训练：一个是在前三张公共牌发完后估计counterfactual值（flop网络），另一个是在第四张公共牌发完后估计counterfactual值（turn网络）。在任何公共牌出牌前的辅助网络用于加速早期actions的re-solving。
 
-![Fig. 3 – DeepStack Neural Networks](2020-04-16-DeepStack.assets/DeepStack-F3.jpg) 
+![Fig. 3 – DeepStack Neural Networks](/img/2020-04-16-DeepStack.assets/DeepStack-F3.jpg) 
 
 output: post-processed to guarantee the values satisfy the **zero-sum constraint**, and then mapped back into a vector of counterfactual values. 
 
@@ -170,11 +180,15 @@ turn网络是通过1000万个随机生成的turn游戏来训练的。这些turn�
 
 
 
-![Fig. 4 – Poker Match Results](2020-04-16-DeepStack.assets/DeepStack-F4.jpg)
+![Fig. 4 – Poker Match Results](/img/2020-04-16-DeepStack.assets/DeepStack-F4.jpg)
 
 
 
 ### Exploitability
+
+DeepStack的主要目标是近似纳什均衡策略，即最大限度地减少可利用性。虽然HUNL扑克策略的精确可利用性是难以计算的，但在完全获得行动概率的情况下，局部最佳反应技术(LBR)可以为策略的可利用性提供一个下限(21)。LBR 使用行动概率来计算策略在任何公共状态下的范围。使用这个范围，它从一个固定的集合中选择响应行动，假设在游戏的剩余时间内不会再下注。因此，它在本地对对手的行动做出最佳响应，为对手的整体可利用性提供了一个下限。如前所述，年度计算机扑克大赛中的抽象型程序被LBR高度可利用：每场比赛的可利用性是翻牌的四倍（表1）。然而，即使在各种设置下，LBR也完全无法利用DeepStack---本身就输给DeepStack超过350 mbb/g（10）。要不就是需要更复杂的lookahead来识别DeepStack的弱点，要不就是它的可利用性大大降低。
+
+
 
 
 
@@ -210,11 +224,11 @@ DeepStack使用了两个反事实值网络，一个用于flop，一个用于turn
 
 
 
-![image-20200517042533506](2020-04-16-DeepStack.assets/image-20200517042533506.png)
+![image-20200517042533506](/img/2020-04-16-DeepStack.assets/image-20200517042533506.png)
 
 
 
-![image-20200517042546367](2020-04-16-DeepStack.assets/image-20200517042546367.png)
+![image-20200517042546367](/img/2020-04-16-DeepStack.assets/image-20200517042546367.png)
 
 
 
