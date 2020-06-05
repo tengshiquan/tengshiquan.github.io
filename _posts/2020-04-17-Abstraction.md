@@ -2,7 +2,7 @@
 layout:     post
 title:      PsOpti算法, 伪最优
 subtitle:   Approximating Game-Theoretic Optimal Strategies for Full-scale Poker
-date:       2020-04-01 12:00:00
+date:       2020-04-17 12:00:00
 author:     "tengshiquan"
 header-img: "img/post-bg-dice.jpg"
 catalog: true

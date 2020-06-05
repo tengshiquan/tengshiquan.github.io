@@ -2,7 +2,7 @@
 layout:     post
 title:      DeepStack
 subtitle:   DeepStack:Expert-Level Artificial Intelligence in Heads-Up No-Limit Poker
-date:       2020-04-01 12:00:00
+date:       2020-04-16 12:00:00
 author:     "tengshiquan"
 header-img: "img/post-bg-dice.jpg"
 catalog: true

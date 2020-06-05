@@ -2,7 +2,7 @@
 layout:     post
 title:      Prioritized Experience Replay
 subtitle:   DQN from Deepmind
-date:       2020-04-01 12:00:00
+date:       2020-04-03 12:00:00
 author:     "tengshiquan"
 header-img: "img/post-atari.jpg"
 catalog: true

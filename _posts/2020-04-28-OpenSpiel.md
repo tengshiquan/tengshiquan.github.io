@@ -2,7 +2,7 @@
 layout:     post
 title:      OpenSpiel
 subtitle:   OpenSpiel, A Framework for Reinforcement Learning in Games
-date:       2020-04-01 12:00:00
+date:       2020-04-28 12:00:00
 author:     "tengshiquan"
 header-img: "img/post-bg-poker.jpg"
 catalog: true

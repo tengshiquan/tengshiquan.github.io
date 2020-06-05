@@ -2,7 +2,7 @@
 layout:     post
 title:      AlphaGo Zero
 subtitle:   AlphaGo from Deepmind
-date:       2020-04-01 12:00:00
+date:       2020-04-08 12:00:00
 author:     "tengshiquan"
 header-img: "img/post-AlphaGo.jpg"
 catalog: true

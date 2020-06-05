@@ -2,7 +2,7 @@
 layout:     post
 title:      SmoothUCT
 subtitle:   
-date:       2020-04-01 12:00:00
+date:       2020-04-29 12:00:00
 author:     "tengshiquan"
 header-img: "img/post-bg-dice.jpg"
 catalog: true
