@@ -43,7 +43,7 @@ board games do not satisfy the Markov property
 - output : move probabilities and  value $(\mathbf{p}, v)=f_{\theta}(s)$
   - $p_{a}=\operatorname{Pr}(a \vert s)$ 
   - v , the probability of the current player winning from position s.
-- policy and value 在一个网络架构中
+- policy and value **在一个网络架构中**
 - 网络由许多卷积层的residual blocks组成，具有batch normalisation和rectifier non-linearities
 
 
