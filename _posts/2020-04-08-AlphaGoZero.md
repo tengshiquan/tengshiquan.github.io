@@ -16,16 +16,32 @@ tags:
 
 # AlphaGo Zero
 
-## Mastering the game of Go without human knowledge
+总体思路:
 
-没有专家棋谱, 完全从zero开始.
+Policy + Value NN(ResNet)   guide MCTS,   MCTS self-play  gen data ($\pi , z$). 
 
-AlphaGo Zero, 与AlphaGo Fan和AlphaGo Lee的差异: 
+MCTS 可以看成 **PI算子** ,   利用$f_{\theta}$ search出来的结果比$f_{\theta}$原来的要好;  之前的PI, 是通过PG来实现的. 
 
-1. No human data, trained by self-play RL, starting from random play
-2. No hand-crafted features, 只使用棋盘盘面作为输入特征
-3. 只使用一个NN
-4. 使用了一个简化版 tree search,  没有Monte Carlo rollouts
+
+
+![image-20200617233849218](/img/2020-04-08-AlphaGo.assets/image-20200617233849218.png)
+
+
+
+
+
+
+
+##### AlphaGo Zero, 与AlphaGo Fan和AlphaGo Lee的差异
+
+1. No human data, trained by self-play RL, starting from random play; 没有专家棋谱, 完全从zero开始.
+2. No hand-crafted features, 只使用棋盘盘面作为输入特征 48 -> 17层
+3. 只使用一个ResNet, 输出 Value, Policy.
+4. 更简单的 tree search,  没有Monte Carlo rollouts, 依靠上面的NN来评估v和p
+
+
+
+
 
 
 
@@ -33,38 +49,87 @@ AlphaGo Zero, 与AlphaGo Fan和AlphaGo Lee的差异:
 
 
 
-board games do not satisfy the Markov property
 
 
+## Mastering the game of Go without human knowledge
 
 #### Reinforcement Learning in AlphaGo Zero
 
 - input : raw board representation s of the position and its history
 - output : move probabilities and  value $(\mathbf{p}, v)=f_{\theta}(s)$
   - $p_{a}=\operatorname{Pr}(a \vert s)$ 
-  - v , the probability of the current player winning from position s.
-- policy and value **在一个网络架构中**
-- 网络由许多卷积层的residual blocks组成，具有batch normalisation和rectifier non-linearities
+  - v , **probability of the current player winning** from position s.
+- **policy** and **value** **在一个网络架构中**
+- 网络由许多卷积层的residual blocks组成，使用batch normalisation和ReLU
 
 
 
-##### Self­play training pipeline
+##### Self­-play with search
+
+- MCTS(s) =  $\pi$
+  - input, position $s$ ;  $f_{\theta}$ 引导 MCTS search ;  **output** :  每个move的概率向量  $\boldsymbol{\pi}$
+  - $\boldsymbol{\pi}$  通常强于  $f_{\theta}(s)$ 的 $\mathbf{p}$  ,   **improve**
+  - **MCTS 可以看成一个强大的 policy improvement operator**.  **MCTS : PI算子**
+- Self-play with search
+  - **improved MCTS­-based policy** to select each move
+  - game winner $z$ as a **sample** of the value,  用于 $f_{\theta}$ 拟合,  **evaluate**
+  - Self-play with search 可以被看成是强大的 policy evaluation operator. **Self-play with search : PE算子**
+- policy iteration :  PI, PE, PI, PE,...
+- $(\mathbf{p}, v)=f_{\theta}(s)$ 越来越匹配  target  $(\boldsymbol{\pi}, z)$ ,  $f_{\theta}$ 越强,  MCTS search 也越强
 
 
+
+##### Self-­play training pipeline
+
+Provide training data
 
 ![image-20200414175303634](/img/2020-04-07-AlphaGo.assets/image-20200414175303634.png)
+
+Guide simulation
 
 ![image-20200414175401546](/img/2020-04-07-AlphaGo.assets/image-20200414175401546.png)
 
 
 
+
+
+##### MCTS
+
+![image-20200414182439143](/img/2020-04-07-AlphaGo.assets/image-20200414182439143.png)
+
+使用 net $f_\theta$  引导 simulation.   这部分比之前简单了, 因为少了rollout的部分. 引导的作用, 主要体现在 对叶子节点的评估, 然后 net 输出的策略P, 也作为expand的一个指标.
+
+1. select , simulation 从root开始,  一直选 最大 **upper confidence bound** $Q(s, a)+U(s, a)$ , $U(s, a) \propto P(s, a) /(1+ N(s, a))$ 的边 ,  直到叶子节点 $s^{\prime}$ . 
+2. Expand and evaluate,  叶子节点, 展开, 并评估 $\left(P\left(s^{\prime}, \cdot\right), V\left(s^{\prime}\right)\right)= {f_{\theta}\left(s^{\prime}\right)}$ 
+3. backup : simulation中遍历到的边, 都更新 $N(s, a)$ 和  $Q(s, a)=1 / N(s, a) \sum_{s^{\prime}\vert s, a \rightarrow s^{\prime} } V\left(s^{\prime}\right)$ 
+4. play,  search完成后, 返回 $\pi$, $  \propto N ^{1 / \tau}$ ,  MCTS 最后选择action, 是按照访问次数的指数
+
+
+
+MCTS 可以看做 **self-play 算法**.  给定 $\theta$ ,  input: 根节点$s$,  output: action序列$\boldsymbol{\pi}=\alpha_{\theta}(s)$   
+action被选中的几率正比于 $\pi_{a} \propto N(s, a)^{1 / \tau},$   $\tau$ : temperature parameter. 
+
+
+
+不一样的点:    
+对于新创建的子节点，需要评估该节点所代表的状态的价值。evaluate的时候,  alphago采用混合机制对状态价值进行估计： $V\left(s_{L}\right)=(1-\lambda) v_{\theta}\left(s_{L}\right)+\lambda z_{L}$ , 其中，第一部分是value net，第二部分是从该节点状态开始使用快速rollout策略（fast rollout policy）走出的胜负结果。  
+**zero版本只使用网络的价值输出作为拓展节点的价值估计**。所以zero版本中不需要rollouts
+
+
+
+
+
+下面与之前不一样的, self-play的时候, 就用MCTS了, 用MCTS的输出$\pi$ 作为target
+
 train NN :  self-play RL , use MCTS play each move.
 
-1. NN initialized random weights $\theta_{0}$ 
+下面1,2两个流程可以是并行的, work in parallel
+
+- NN initialized random weights $\theta_{0}$ 
    1. (Fig. 1a) , at iteration $i \geq 1$ ,  games of self-play are generated , plays a game $s_{1}, \ldots, s_{T}$ against itself
-      1. at $t$ ,  MCTS search $\pi_{t}=\alpha_{\theta_{i-1}}\left(s_{t}\right)$ ,   play a move ~ sampling $\boldsymbol{\pi}_{t}$ 
+      1. at $t$ ,  **MCTS** search $\pi_{t}=\alpha_{\theta_{i-1}}\left(s_{t}\right)$ , using $f_{\theta_{i-1}}$,   play  $a_t$  ~  sampling $\boldsymbol{\pi}_{t}$ 
       2. terminates at step $T$  ,  final reward of $r_{T} \in\{-1,+1\}$ 
-      3. data for $t$  stored as $\left(s_{t}, \boldsymbol{\pi}_{t}, z_{t}\right)$ ,   $z_{t}=\pm r_{T}$ , 当前player角度
+      3. data for $t$  stored as $$\left(s_{t}, \boldsymbol{\pi}_{t}, z_{t}\right)$$ ,   $$z_{t}=\pm r_{T}$$ , 当前player角度
    2. (Fig. 1b) , in parallel,  train NN $\theta_{i}$ 
       1. data: 均匀采样 $(s, \boldsymbol{\pi}, z)$  
       2. $(\mathbf{p}, v)=f_{\theta}(s)$ ,  target  $(\boldsymbol{\pi}, z)$ 
@@ -72,51 +137,7 @@ train NN :  self-play RL , use MCTS play each move.
 
 
 
-这里非常关键的一个点是, Loss函数跟之前的不一样; 这里重点利用了L2;  L2可以让参数均匀分布,防止过拟合. 
-
-
-
-MCTS:
-
-- **Monte Carlo**: Randomly trying things, e.g. throwing dice.
-
-- **Tree Search**: Searching the various “leaves” of the “tree” of possibilities.
-- **Node**: State 
-- **Edge**: Action
-
-
-
-![image-20200414182439143](/img/2020-04-07-AlphaGo.assets/image-20200414182439143.png)
-
-MCTS跟alphaGo的差不多一样. 
-
-1. simulation 从root开始,  一直 select 最大化 **upper confidence bound** $Q(s, a)+U(s, a)$ , $U(s, a) \propto P(s, a) /(1+ N(s, a))$ 的边 ,  直到叶子节点 $s^{\prime}$ . 
-2. 叶子节点, 展开, 并评估 $\left(P\left(s^{\prime}, \cdot\right), V\left(s^{\prime}\right)\right)= {f_{\theta}\left(s^{\prime}\right)}$ 
-3. backup : simulation中遍历到的边, 都更新 $N(s, a)$ 和  $Q(s, a)=1 / N(s, a) \sum_{s^{\prime}\vert s, a \rightarrow s^{\prime} } V\left(s^{\prime}\right)$ 
-
-
-
-MCTS 可以看做 self-play 算法.  给定 $\theta$ ,  根节点$s$,  输出action序列$\boldsymbol{\pi}=\alpha_{\theta}(s)$   
-action被选中的几率正比于 $\pi_{a} \propto N(s, a)^{1 / \tau},$   $\tau$ : temperature parameter. 
-
-
-
-关键不一样的点  
-对于新创建的子节点，需要评估该节点所代表的状态的价值。evaluate的时候,  alphago采用混合机制对状态价值进行估计： $V\left(s_{L}\right)=(1-\lambda) v_{\theta}\left(s_{L}\right)+\lambda z_{L}$ , 其中，第一部分是以节点状态为输入价值网络的输出，第二部分是从该节点状态开始使用快速走子策略（fast rollout policy）走出的胜负结果，若超过一定的步数，则计算分数。  
-**zero版本只使用网络的价值输出作为拓展节点的价值估计**。所以zero版本中不需要rollouts
-
-
-
-- MCTS search , 算某个 s  的  $\pi$
-  - position $s$,  NN $f_{\theta}$ 引导 MCTS search , **output** :  probabilities $\pi$ of playing each move
-  - MCTS 的 probabilities $\pi$  通常强于  $f_{\theta}(s)$ 的 $\mathbf{p}$  ,   从这个角度看是improve
-  - MCTS 可以看成一个强大的 policy improvement operator.  **MCTS : PI算子**
-- Self-play with search
-  - using the improved MCTS­-based policy to select each move
-  - using the game winner $z$ as a sample of the value
-  - Self-play 可以被看成是强大的 policy evaluation operator. **Self-play : PE算子**
-- policy iteration :  PI, PE, PI, PE,...
-- $(\mathbf{p}, v)=f_{\theta}(s)$ ,  target  $(\boldsymbol{\pi}, z)$ ,  NN parameter update
+这里Loss函数跟之前的不一样,  一个loss包含了value以及policy两个输出的loss之和; 加了L2正则化;  L2可以让参数均匀分布,防止过拟合. 
 
 
 
@@ -146,12 +167,14 @@ SL里面也应该有过拟合, 并且从人类data出发,或造成探索的空�
 ![image-20200415040715087](/img/2020-04-07-AlphaGo.assets/image-20200415040715087.png)
 separate (sep) or combined policy and value (dual) network
 
+ 
 
+**P和V都放到一个net里面效果好, 无论resnet还是CNN.**
 
 为了将结构architecture和算法algorithm的贡献分离，我们将AlphaGo Zero使用的NN architecture的性能与AlphaGo Lee进行了比较（见图4）。  
 创建了四个NN，就像在AlphaGo Lee中那样，使用独立的策略网络和价值网络；或者使用AlphaGo Lee使用的卷积网络架构或AlphaGo Zero使用的残差网络架构。训练网络时都最大限度地减少相同的损失函数，使用的数据集是AlphaGo Zero在72小时的自我博弈训练后产生的固定数据集。  
 利用**残差网络更准确**，使AlphaGo 达到较低的错误率和性能的改进，达到了超过600Elo。  
-将策略和价值合成一个单一的网络会轻微地降低落子prediction accuracy，但降低了value error，并且使AlphaGo的性能提高大约600Elo。这部分由于提高了计算效率，但更重要的是 , **dual objective regularizes NN to a common representation that supports multiple use cases**. 
+将策略和价值合成一个单一的网络会轻微地降低落子prediction accuracy，但降低了value error，并且使AlphaGo的性能提高大约600Elo。这部分由于提高了计算效率，但更重要的是 , **dual objective regularizes NN to a common representation that supports multiple use cases**.   一个网络两个输出, 就会使得网络学到更加一般性的东西. 
 
 
 
@@ -193,7 +216,7 @@ AlphaGo Zero在自我博弈训练过程中达到了围棋的新高度。  棋理
 
 ##### Reinforcement learning
 
-Policy iteration  理论部分,  主要讨论MCTS的意义;  MCTS 首先是一个基于统计的policy,  其次, MCTS也可以引入启发式策略来改进. 而NN本身做为一个策略, 也可以作为启发式的部分结合到MCTS里面去. 
+Policy iteration  理论部分,  主要讨论MCTS的意义;  **MCTS 首先是一个基于统计的policy**,  其次, MCTS也可以引入**启发式策略**来改进. 而NN本身做为一个策略, 也可以作为启发式的部分结合到MCTS里面去. 
 
 基于分类的RL算法, 通过 **Monte Carlo search**来improve.  **Classification­-based reinforcement learning**   improves the policy using a simple **Monte Carlo search**. Many **rollouts** are executed for each action; the action with the **maximum mean value** provides a positive training example, while all other actions provide negative training examples; **a policy is then trained to classify actions as positive or negative, and used in subsequent rollouts.** This may be viewed as a precursor to the policy component of AlphaGo Zero’s training algorithm when $\tau \to 0$.    
 这里,  在rollout中如何选择action没有提及. 这里的rollout 扮演了 生成sample,  然后policy evaluation的角色. 如果policy本身 select action 时, 选了max,  所以相当于一个 greedy improve; 下面网络拟合Fit ,  即是evaluate也是improve的过程;  
@@ -249,10 +272,10 @@ MCTS search parameters were selected by Gaussian process optimization, so as to 
 
 #### Self-play training pipeline
 
-三个主要部分组成，所有这些都是异步并行执行的。
+三个主要部分组成，所有这些都是**异步并行**执行的。
 
 1. 神经网络参数$θ_i$会从最近的self-play数据中不断优化
-2. AlphaGo Zero的棋手$α_{θ_i}$会不断被评估
+2. AlphaGo Zero的棋手$α_{θ_i}$会不断被**评估**
 3. 而到目前为止表现最好的棋手$α_{θ_*}$会被用来生成新的self-play数据。
 
 
@@ -266,7 +289,7 @@ The optimization process produces a new checkpoint every 1,000 training steps. T
 
 ##### Evaluator
 
-为了确保总是生成最佳质量的数据，我们在将每个新的神经网络checkpoint与当前的最佳网络$f_{\theta *}$进行比较，然后再将其用于数据生成。通过MCTS search $$\alpha_{\theta_{i}}$$的性能来评估神经网络$$f_{\theta_{i}}$$，MCTS使用$f_{\theta_{i}}$来评估叶子节点的局面以及各个action的概率 。每次评估包括400局，使用一个有1600个模拟的MCTS来选择每一步棋，使用一个无限小的温度$\tau \rightarrow 0$（也就是说，我们决定性地选择访问次数最大的棋子，以给出可能的最强下法）。如果新的player以>55%的幅度取胜（为了避免噪声干扰），那么它就成为最佳player $$\alpha_{\theta_*}$$，随后被用于self­play的生成，也成为后续比较的baseline。
+为了确保总是生成最佳质量的数据，我们在将每个新的神经网络checkpoint与当前的最佳网络$f_{\theta *}$进行比较，然后再将其用于数据生成。通过MCTS search $$\alpha_{\theta_{i}}$$的性能来评估神经网络$$f_{\theta_{i}}$$，MCTS使用$f_{\theta_{i}}$来评估叶子节点的局面以及各个action的概率 。每次评估包括400局，使用一个有1600个模拟的MCTS来选择每一步棋，使用一个无限小的温度$\tau \rightarrow 0$（也就是说，**选择访问次数最大的acton**，以给出可能的最强下法）。如果新的player以>55%的幅度取胜（为了避免噪声干扰），那么它就成为最佳player $$\alpha_{\theta_*}$$，随后被用于self­play的生成，也成为后续比较的baseline。    访问次数最多, 对应着  博弈论里面的 平均策略.  
 
 ##### Self-play
 
