@@ -82,7 +82,7 @@ V(s) : 未来奖励和的期望，predictions of rewards ;长期  long-term desi
 使用模型与计划的强化学习方法被称为有模型 (model-based) 方法; 与之相反的是更简单的使用试错的免模
 型 (model-free) 方法, 试错可以视为计划的反面.
 
-
+​	
 
 
 
@@ -1483,13 +1483,13 @@ All the **control** algorithms involve **maximization** in the construction of t
 
 举个例子：考虑一个state s下所有的action对应的真实action-value  q(s,a)均为0，但是估计的action-value Q(s,a)是不确定的，可能大于0 也可能小于0。真实的action-value的最大值为0，但估计的action-value Q(s,a)的最大值是正值，这导致了正向偏差。我们称之为Maximization Bias。
 
-![img](/img/RL_Introduction.assets/1*HmGJAGiZG8coo-B4Q7m7-g.png)
+![img](/img/RL_Introduction.assets/HmGJAGiZG8coo-B4Q7m7-g.png)
 
 
 
 Let X1 and X2 two random variables that represent the reward of two actions at state B.
 
-![img](/img/RL_Introduction.assets/1*47PA48y8jv8hPfIBO_aL4g.png)
+![img](/img/RL_Introduction.assets/47PA48y8jv8hPfIBO_aL4g.png)
 
 Q-Learning uses Max Q(s’,a), represented in the table by Max(𝝁) ，  Max(𝝁) is not a good estimator for Max E(X). It is biased!  上表就是说明  Max(𝝁) 不是Max E(X) 的好的估计 
 

@@ -234,7 +234,7 @@ $$
 
 下图解释为什么
 
-<img src="/img/Optimizer.assets/1*6MEi74EMyPERHlAX-x2Slw.png" alt="img" style="zoom:70%;" />
+<img src="/img/Optimizer.assets/6MEi74EMyPERHlAX-x2Slw.png" alt="img" style="zoom:70%;" />
 
 
 

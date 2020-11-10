@@ -360,7 +360,7 @@ We use virtual loss to ensure each thread evaluates different nodes .
 
 
 
-![img](/img/2020-04-07-AlphaGo.assets/1*WqwAVtTzYNQnlDEf2iJnsg.png)
+![img](/img/2020-04-07-AlphaGo.assets/alphagozero.png)
 
 
 
