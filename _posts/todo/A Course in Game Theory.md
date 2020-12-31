@@ -6,8 +6,6 @@
 
 一些笔记, 待整理
 
-公式太多, 体系比较全.
-
 
 
 ### 总体结构
@@ -93,9 +91,88 @@
 
 本书使用 deductive reasoning 演绎推理. 
 
-函数$f$ 是 **凹函数 concave** :  if $f\left(\alpha x+(1-\alpha) x^{\prime}\right) \geq \alpha f(x)+(1-\alpha) f\left(x^{\prime}\right)$ for all $x \in \mathbb{R}$ , all $x^{\prime} \in \mathbb{R},$ and all $\alpha \in[0,1]$  ;  
-$\arg \max _{x \in X} f(x)$ 表示函数 $f: X \rightarrow \mathbb{R}$ 的最大值集合;   
+- $\mathbb{R}=(-\infty,+\infty)$
+- $\mathbb{R}_{+}=[0,+\infty) ,  \mathbb{R}_{++}=(0,+\infty)$
+- $\mathbb{R}^{n}=\left\{\left(x_{1}, \cdots, x_{n}\right): \forall i=1, \cdots, n, x_{i} \in \mathbb{R}\right\}$
+- $\mathbb{R}_{+}^{n}=\left\{\left(x_{1}, \cdots, x_{n}\right): \forall i=1, \cdots, n, x_{i} \in \mathbb{R}_{+}\right\}$
+- $x=\left(x_{1}, \cdots, x_{n}\right) \in \mathbb{R}^{n}$
+- $x \geq y: \forall i=1, \cdots, n, x_{i} \geq y_{i}$  向量比大小
+- $x>y: \forall i=1, \cdots, n, x_{i}>y_{i}$
+
+函数
+
+- $f: X \rightarrow Y$  ,  $$  \forall A \subseteq X, f(A)=\{f(a): a \in A\} $$
+- $f: X \rightarrow \mathbb{R}$  实值函数 
+- $$ \begin{array}{l}
+\operatorname{argmax}_{x \in X} f(x)=  
+\{a \in X: \forall b \in X, f(a) \geq f(b)\}
+\end{array} $$ 
+
 对任何 $Y \subseteq X$ , 用 $f(Y)$ 表示集合 $\{f(x): x \in Y\}$  
+
+$\arg \max _{x \in X} f(x)$ 表示函数 $f: X \rightarrow \mathbb{R}$ 的最大值集合;   
+$$
+\begin{array}{l}
+X=[-2,2], y=x^{2} \\
+\operatorname{argmax} f(x)=\{-2,2\}, \max f(x)=4 \\
+\operatorname{argmin} f(x)=\{0\}, \min f(x)=0
+\end{array}
+$$
+
+
+- $f: \mathbb{R}^{n} \rightarrow \mathbb{R}$    n维向量 映射到 实数. 
+  - Increasing and Nondecreasing 
+  - Decreasing and Nonincreasing
+  - Concave 凹函数 and Convex 凸函数  ;  
+  - Quasi-concave and Quasi-convex
+
+函数$f$ 是 **凹函数 concave** :  if $f\left(\alpha x+(1-\alpha) x^{\prime}\right) \geq \alpha f(x)+(1-\alpha) f\left(x^{\prime}\right)$ for all $x \in \mathbb{R}$ , all $x^{\prime} \in \mathbb{R},$ and all $\alpha \in[0,1]$  ;   凹函数, 两点小于中间, 与一般的认识相反.  凹函数,下方的图像是 凸集.   
+
+凸集： $X$ is **convex** if $\forall x, y \in X, \forall \theta \in[0,1], \  \theta \mathrm{x}+(1-\theta) \mathrm{y} \in X  $   任意线性加权仍在集合内.
+
+![image-20201231152123658](A Course in Game Theory.assets/image-20201231152123658.png)
+
+$f: \mathbb{R}^{n} \rightarrow \mathbb{R}$ is **concave**  if $\forall x, y \in \mathbb{R}^{n}, \forall \theta \in[0,1]$ , $f(\theta \mathrm{x}+(1-\theta) \mathrm{y}) \geq \theta f(\mathrm{x})+(1-\theta) f(\mathrm{y})$
+
+$f: \mathbb{R}^{n} \rightarrow \mathbb{R}$ is **quasi-concave**  if $\forall x, y \in \mathbb{R}^{n}, \forall \theta \in[0,1]$, $f(\theta \mathrm{x}+(1-\theta) \mathrm{y}) \geq \min \{f(\mathrm{x}), f(\mathrm{y})\}$
+
+拟凹函数是 凹函数的推广,  凹函数一定是拟凹函数, 反之不然. 
+
+拟凹的一个等价的定义: $$f: \mathbb{R}^{n} \rightarrow \mathbb{R}$$  is quasi-concave iff $$\forall x, y, z \in \mathbb{R}^{n}$$  if $$f(x) \geq f(z), f(y) \geq f(z), \forall \theta \in[0,1] ,  f(\theta x+(1-\theta) y) \geq f(z) $$
+
+
+
+笛卡尔乘积空间:
+$$
+\begin{array}{l}
+\mathrm{X} \times \mathrm{Y} =\{(\mathrm{x}, \mathrm{y}):  \mathrm{x} \in \mathrm{X}, \mathrm{y} \in \mathrm{Y} \} \\
+\mathrm{X}=\{\mathrm{a}, \mathrm{b}, \mathrm{c}\}, \mathrm{Y}=\{0,1\} \\
+\mathrm{X} \times \mathrm{Y}=\{(\mathrm{a}, 0),(\mathrm{a}, 1),(\mathrm{b}, 0),(\mathrm{b}, 1),(\mathrm{c}, 0),(\mathrm{c}, 1)\} \\
+\mathrm{X} \times \mathrm{Y} \times \mathrm{Z}=\{(\mathrm{x}, \mathrm{y}, \mathrm{z}):  \mathrm{x} \in \mathrm{X}, \mathrm{y} \in \mathrm{Y}, \mathrm{z} \in \mathrm{Z}\} \\
+\mathrm{X}=\{\mathrm{a}, \mathrm{b}, \mathrm{c}\}, \mathrm{Y}=\{0,1\}, \mathrm{Z}=\{\$\} \\
+\mathrm{X} \times \mathrm{Y} \times \mathrm{Z}=  
+\{(\mathrm{a}, 0, \$),(\mathrm{a}, 1, \$),(\mathrm{b}, 0, \$),(\mathrm{b}, 1, \$),(\mathrm{c}, 0, \$),(\mathrm{c}, 1, \$)\} \\
+\mathrm{X}^{2}=\{\mathrm{a}, \mathrm{b}, \mathrm{c}\} \times\{\mathrm{a}, \mathrm{b}, \mathrm{c}\}=\{(\mathrm{a}, \mathrm{a}),(\mathrm{a}, \mathrm{b}), \ldots,(\mathrm{c}, \mathrm{c})\} \\
+\mathrm{X}^{3}=\{\mathrm{a}, \mathrm{b}, \mathrm{c}\} \times\{\mathrm{a}, \mathrm{b}, \mathrm{c}\} \times\{\mathrm{a}, \mathrm{b}, \mathrm{c}\} = \{(\mathrm{a}, \mathrm{a}, \mathrm{a}),(\mathrm{a}, \mathrm{a}, \mathrm{b}), \ldots,(\mathrm{c}, \mathrm{c}, \mathrm{c})\}
+\end{array}
+$$
+
+
+Cartesian Products
+
+- $X \times Y, X \times Y \times Z$
+- $X_{1} \times X_{2} \times \cdots \times X_{n}=\times_{i=1}^{n} X_{i}$
+- $X \times X=X^{2}, X \times X \times X=X^{3}$
+- $X \times X \times \cdots \times X=X^{n}$
+
+Let $N=\{1,2, \cdots, n\}$ denote the set of players:
+
+- $x=\left(x_{i}\right)_{i \in N}=\left(x_{i}\right) \in \times_{i \in N} X_{i}$ 
+- $x_{-i}=\left(x_{j}\right)_{j \in N \backslash\{i\}} \in \times_{j \in N \backslash\{i\}} X_{j}=X_{-i}$
+
+$X_1 = (X_2, X_3....,X_n)$ ,  $X_2 = (X_1, X_3....,X_n)$ ....   $X_n = (X_1, X_1....,X_{n-1})$
+
+
 
 $N$ :  玩家集合.   
 
@@ -105,25 +182,75 @@ $N$ :  玩家集合.
 - 给定列表 $$x_{-i} = \left(x_{j}\right)_{j \in N \backslash\{i\}}$$  和元素  $$x_{i}$$ , 可以用 $$\left(x_{-i}, x_{i}\right)$$ 表示配置 $$\left(x_{i}\right)_{i \in N}$$  
 - 若对每个 $i \in N$ ,  $X_{i}$ 是一个集合, 则可以用 $X_{-i}$ 表示集合 $\times_{j \in N \backslash\{i\}} X_{j}$
 
-对于集合$A$ 上的 **二元关系 binary relation** $\succsim$ :  
 
-- if $a \succsim b$ or $b \succsim a$ for every $a \in A$ and $b \in A$ , 则是 **完备的complete**
+
+ 对于集合$A$ 上的 **二元关系 binary relation** $\succsim$ :  
+
+- if $a \succsim b$ or $b \succsim a$ for every $a \in A$ and $b \in A$ , 则是 **完备的complete**   , 然后两个东西可以比较, 可以排序,可以做出选择
 - if $a \succsim a$ for every $a \in A$ , 则是 **自反的reflexive** 
 - if $a \succsim c$ whenever $a \succsim b$ and $b \succsim c$ ,  则是 **传递的transitive**
 
-偏好关系是 complete reflexive transitive 的二元关系.  
 
-- if $a \succsim b$ , not $b \succsim a$ , 记为 $a \succ b$ 
-- if $a \succsim b$  and $b \succsim a$ ,  记为 $a \sim b$
 
-集合$A$ 上的偏好关系  $\succsim$  是**连续的continuous** :  if $a \succsim b$ whenever there are sequences $$\left(a^{k}\right)_{k}$$ and $$\left(b^{k}\right)_{k}$$  in $A$ that converge to $a$ and $b$ respectively for which $$a^{k} \succsim b^{k}$$ for all $k$  .   
+##### **Preference Relations**  偏好关系,  集合内的排序关系
+
+A (**rational**) preference relation $\succsim$ on a set $A$ 
+
+偏好关系是 **complete** **reflexive** **transitive** 的二元关系.    是理性的. 
+
+
+
+- if $a \succsim b$ , not $b \succsim a$ , 记为 $a \succ b$    严格偏好
+- if $a \succsim b$  and $b \succsim a$ ,  记为 $a \sim b$     无差异偏好
+
+
+
+集合$A$ 上的偏好关系  $\succsim$  是**连续的continuous** :  if $a \succsim b$ whenever there are sequences $$\left(a_{k}\right)_{k=1,2...}$$ and $$\left(b_{k}\right)_{k}$$  in $A$ that converge to $a$ and $b$ respectively for which $$a_{k} \succsim b_{k}$$ for all $k$  .      
+即,  偏好不会发生逆转.  
+如果用收益函数表示偏好,  $U: A \to \mathbb{R}$ , 则该函数是连续的.     
+如果一个理性的偏好是连续的,那一定可以用一个连续的收益函数来表示 : 德布鲁定理. 
+
+反例, 字典式偏好,  先看第一个字母, 然后再看第二个字母, ....      
+字典式偏好,  苹果香蕉,  先看苹果数量, 如果苹果数一样,才看香蕉.   
+该偏好不是连续的. 
+
+
+
+集合是凸集,元素的加权平均也在集合内.     set $A \subseteq \mathbb{R}^{n}$ is **convex** if $\forall a, b \in A$ , $\forall \lambda \in[0,1], \lambda a+(1-\lambda) b \in A$
+
+偏好关系是拟凹 与 对应收益函数是拟凹的 是一个意思,   $\succsim$ on $\mathbb{R}^{n}$ is **quasi-concave** if $\forall b \in \mathbb{R}^{n}$ the set $\left\{a \in \mathbb{R}^{n}: a \succsim b \right\}$ is **convex**. 比a更好的元素的集合是凸集, 即两个比a好的元素其加权平均也比a好.  
+
+严格拟凹,  $\succsim$ on $\mathbb{R}^{n}$ is **strictly quasi-concave** if $\forall b \in \mathbb{R}^{n},$ the set $\left\{a \in \mathbb{R}^{n}: a \succsim  b\right\}$ is **strictly convex**, i.e., $\forall \lambda \in(0,1)$ $\lambda x+(1-\lambda) x^{\prime}  \succ b$ whenever
+$$
+x \gtrsim b, x^{\prime} \succsim b, \text { and } x \neq x
+$$
+
+
 A preference relation $\succsim$ on $$\mathbb{R}^{n}$$ is **quasi-concave 拟凹的** if for every $b \in \mathbb{R}^{n}$ the set $$\left\{a \in \mathbb{R}^{n}: a \succsim b\right\}$$ is convex; it is **strictly quasi-concave 严格拟凹的** if every such set is strictly convex.
 
 
 
-$|X|$ : 集合元素的个数.       
-$X$ 的**分割partition** 是$X$的 **非连通子集disjoint subsets** 的一个集合. 非连通子集的和为 $X$   
-Let $N$ be a finite set and let $X \subseteq \mathbb{R}^{N}$ be a set. Then $x \in X$ is **帕累托有效 Pareto efficient** if there is no $y \in X$ for which $y_{i}>x_{i}$ for all $i \in N ; x \in X$ is **strongly Pareto efficient** if there is no $y \in X$ for which $y_{i} \geq x_{i}$ for all $i \in N$ and $y_{i}>x_{i}$ for some $i \in N$. 
+微观经济学经典假设,  边际替代率递减 : 偏好是 拟凹的(凸的) . 
+
+严格拟凹,  全局最大值就是局部最大值.  对拟凹函数不成立. 
+
+
+
+
+
+##### Pareto efficient
+
+$|X|$ : 集合元素的个数.   **基数**      **cardinality**
+
+$X$ 的**划分,分割partition** 是$X$的 **非连通子集, 不相交子集disjoint subsets** 的一个集合. 不相交子集的 并集 为 $X$   
+
+Let $N$ be a finite set and let $X \subseteq \mathbb{R}^{N}$ be a set. Then $x \in X$ is **帕累托有效 Pareto efficient** if there is no $y \in X$ for which $y_{i}>x_{i}$ for all $i \in N ; x \in X$ is **strongly Pareto efficient** if there is no $y \in X$ for which $y_{i} \geq x_{i}$ for all $i \in N$ and $y_{i}>x_{i}$ for some $i \in N$.   弱与强, 看分量, 是不是有相等.
+
+帕累托改进, 在不伤害某个人利益的情况下,  增加总体收益. 
+
+
+
+##### 概率测度probability measure
 
 一个有限(或可数)集合$X$ 上的 **概率测度probability measure** $\mu$  是一个可加函数.  associates a nonnegative real number with every subset of $X$  (that is, $\mu(B \cup C)=\mu(B)+\mu(C)$   whenever  $B$  and  $C$ are disjoint) and satisfies $\mu(X)=1 .$ 
 
@@ -231,6 +358,10 @@ $$
 
 
 
+
+
+
+
 #### 2.3	Examples
 
 先看一些经典例子.  都是只有两个参与者, 两个动作
@@ -329,6 +460,166 @@ and the preference relation $$\succsim_{i}$$ is
 
 
 
+
+#### 纳什均衡的存在性
+
+
+
+##### 不动点定理:  布劳威尔   <   角谷静夫(推广)
+
+##### 布劳威尔
+
+$\mathbb{R}$ 虽然是闭的, 但不是有界的, 所以不是紧集.
+
+**Brouwer's fixed point** theorem:
+Let $X \subseteq \mathbb{R}^{n}$ be **nonempty, compact, and convex**.   定义域要求 **非空,紧(有界闭),凸集**.  
+If a function $f: X \rightarrow X$ is **continuous**, then $\exists x \in X, x=f(x)$.  
+
+**定义域 非空紧致凸集, 函数连续 , 必有不动点.** 
+
+- $X$ is **bounded** if $\exists M>0, \forall x, y \in X$    集合**有界,** 欧式距离   
+
+$$
+|x-y|<M
+$$
+- $X$ is **closed** if for any sequence $\left\{x_{k}\right\}$ in $X$ converging to $x,$ we have $x \in X$  **闭集**: 任何序列的极限都在集合里.    (0,1) 不是闭集, 因为{1/(1+k)} 极限是0不在里面.  
+- $X$ is **compact** if it is closed and bounded.   **紧集**: 有界闭集
+- $X$ is **convex** if $\forall x, y \in X, \forall \alpha \in[0,1]$ ,    **凸集**  
+
+$$
+\alpha x+(1-\alpha) y \in X
+$$
+
+函数图像连续:
+
+- For any function $f: X \rightarrow Y$ Graph $(f)=$ $\{(x, y) \in X \times Y: y=f(x)\}$   函数的图像
+- $f: X \rightarrow Y$ is **continuous** if for any sequence $\left\{x_{k}\right\}$ in $X$, $x_{k} \rightarrow x \Rightarrow f\left(x_{k}\right) \rightarrow f(x)$  函数连续
+
+简单直观理解, 就是 一维函数 与 f(x)=x 会相交.
+
+![image-20201230162717127](A Course in Game Theory.assets/image-20201230162717127.png)
+
+
+
+没有不动点的例子:  说明上面的条件都不能放松.
+
+- X is not compact. X is the real line and f(x)=x+1
+- X is not convex. X is the unit circle, and f is rotation by 90°.   下图, 定义在二维上的函数, 将自己旋转90度,没有不动点
+- f is not continuous.  X=[0; 1];f(x)= 1 if x< 1 and f(1)= 0.
+
+![image-20201230163301731](A Course in Game Theory.assets/image-20201230163301731.png)
+
+
+
+
+
+角谷静夫
+
+集值函数,  For any set-valued function $f: X \rightarrow Y$, $\operatorname{Graph}(f)=\{(x, y) \in X \times Y: y \in f(x)\}$
+
+
+
+Lemma 20.1 (**Kakutani's fixed point** theorem)
+Let $X$ be a **nonempty compact convex**(定义域,非空紧致凸集) subset of $\mathbb{R}^{n}$ and let $f: X \rightarrow X$ be a set-valued(集值函数,将点映射到集合) function for which
+
+- for all $x \in X$ the set $f(x)$ is **nonempty** and **convex**;  **对x, f(x)取值是非空凸集**
+- the graph of $f$ is **closed**  **图像是闭的**  (i.e. for all sequences $\left\{x_{n}\right\}$ and $\left\{y_{n}\right\}$ s.t. $y_{n} \in f\left(x_{n}\right)$ for all $n, x_{n} \rightarrow x,$ and $y_{n} \rightarrow y,$ we have $y \in f(x) .)$   
+- Then $\exists x^{*} \in X, x^{*} \in f\left(x^{*}\right) . $  则肯定有不动点.   因为y是集合, 所以等号变成 in
+
+**定义域 非空紧致凸集, 函数取值 非空凸集, 图像是闭的, 则有不动点** 
+
+为什么说是推广, 角谷静夫不动点, 如果将 集值函数f(x), 改成 单点集函数(普通多对一函数),  会退化为  布劳威尔不动点.         图像是闭的, 对单点集, 说明函数是连续的. 
+
+
+
+-  $f(x)$ is not convex for some $x \in X$. $X=[0 , 1]$ and
+
+$$
+f(x)=\left\{\begin{array}{ll}\{1\}, & \text { if } x<0.5 \\ \{0,1\}, & \text { if } x=0.5 \\ \{0\}, & \text { if } x>0.5\end{array}\right.
+$$
+  要求函数在每个点的取值是凸集. 但当x=0.5的时候,  f 取值是个多点集, 不是凸的(**只有单点集跟空集是凸的**), 所以f(x) 不是凸的.
+
+![image-20201230172312726](A Course in Game Theory.assets/image-20201230172312726.png)
+
+- The graph of $f$ is not closed. $X=[0 ; 1] ; f(x)=1$ if $x<1$ and $\mathrm{f}(1)=0$  不连续. 
+
+![image-20201230172425628](A Course in Game Theory.assets/image-20201230172425628.png)
+
+
+
+
+
+
+
+##### Quasi-concave Preferences 拟凹
+
+- 偏好在$A_i$上拟凹:  A **preference** relation $\succsim_{i}$ over $A$ is **quasi-concave** on $A_{i}$ if for every $a^{*} \in A,$ the set
+$$
+\left\{a_{i} \in A_{i}:\left(a_{-i}^{*}, a_{i}\right) \succsim_{i}\left(a_{-i}^{*}, a_{i}^{*}\right)\right\}
+$$
+is convex.  (只针对 $A_i$, 即自己的行动是变量)  集合是凸集. 
+
+- 与上面等价的收益函数, A **utility** function $u_{i}: A \rightarrow \mathbb{R}$ is **quasi-concave** on $A_{i}$ if for every $a^{*} \in A$, the set
+
+$$
+\left\{a_{i} \in A_{i}: u_{i}\left(a_{-i}^{*}, a_{i}\right) \geq u_{i}\left(a_{-i}^{*}, a_{i}^{*}\right)\right\}
+$$
+is convex.
+
+
+
+
+
+##### The Existence Theorem
+
+Proposition 20.3: The strategic game $\left\langle N,\left(A_{i}\right),\left(\succsim_{i}\right)\right\rangle$ has a Nash equilibrium if for all $i \in N$ 
+
+- the set $A_{i}$ is a nonempty compact convex subset of a Euclidian space, 
+
+and the preference relation $\succsim_{i}$ is
+
+- continuous
+- quasi-concave on $A_{i}$.
+
+满足这3个条件, 肯定存在纳什均衡. 
+
+
+
+Proof of Proposition 20.3 :
+
+思路, 构造一个集值函数满足上面的 角谷静夫不动点定理的条件, 则必然有不动点.  然后由纳什均衡的定义, 证明该不动点就是均衡点.
+
+先定义一个 集值函数:最优反应函数,  给定其他人的策略组合, 返回自己的策略, 该策略是最优的.
+$$
+\begin{aligned}
+B_{i} :\  &A_{-i} \rightarrow A_{i} \text { is defined by } \\
+&B_{i}\left(a_{-i}\right)= 
+\left\{a_{i} \in A_{i}: \forall a_{i}^{\prime} \in A_{i},\left(a_{-i}, a_{i}\right) \gtrsim_{i}\left(a_{-i}, a_{i}^{\prime}\right)\right\}\\
+a^{*} \in \mathrm{A} &\text { is a Nash equilibrium iff }\\
+& \forall i \in N, a_{i}^{*} \in B_{i}\left(a_{-i}^{*}\right) \\
+&\text { i.e.} \  a^{*} \in B\left(a^{*}\right)
+\end{aligned}
+$$
+
+
+- Define $B: A \rightarrow A$ by       定义域与值域相同, 是非空的紧凸集.
+
+$$
+B(a)=\times_{i \in N} B_{i}\left(a_{-i}\right)
+$$
+ where $B_{i}$ is the **best-response** function of player $i$ ; 构造一个集值函数, 当对方策略固定,自己的br 可能是多个 ;    B 是 几个$B_i$ 的乘起来的.  下面证明 该最优反应函数符合不动点的要求
+
+- $\forall i \in N, B_{i}\left(a_{-i}\right)$ is **nonempty** since $\succsim_{i}$ is continuous and $A_{i}$ is compact,   
+  and is **convex** since $\succsim_{i}$ is quasi-concave on $A_{i}$
+- $B$ has a **closed** graph since each $\succsim_{i}$ is continuous.
+
+- Thus by Kakutani's theorem $\mathrm{B}$ has a fixed point, which is a Nash equilibrium of the game.
+
+
+
+
+
+
 #### 2.5	Strictly Competitive Games 严格竞争博弈, 零和博弈
 
 
@@ -350,11 +641,11 @@ and the preference relation $$\succsim_{i}$$ is
 **DEFINITION 32.1** The **mixed extension** of the strategic game $$\langle N,\left(A_{i}\right) 
 \left(u_{i}\right) \rangle$$ is the strategic game $\left\langle N,\left(\Delta\left(A_{i}\right)\right),\left(U_{i}\right)\right\rangle$ in which $\Delta\left(A_{i}\right)$ is the set of probability distributions over $A_{i},$ and $U_{i}: \times_{j \in N} \Delta\left(A_{j}\right) \rightarrow \mathbb{R}$ assigns to each $\alpha \in \times_{j \in N} \Delta\left(A_{j}\right)$ the expected value under $u_{i}$ of the lottery over $A$ that is induced by $\alpha$ (so that  $U_{i}(\alpha)=\sum_{a \in A}\left(\Pi_{j \in N} \alpha_{j}\left(a_{j}\right)\right) u_{i}(a)$ if $A$ is finite).
 
-Note that each function $U_{i}$ is multilinear. That is, for any mixed strategy profile $\alpha,$ any mixed strategies $\beta_{i}$ and $\gamma_{i}$ of player $i,$ and any number $\lambda \in[0,1],$ we have $U_{i}\left(\alpha_{-i}, \lambda \beta_{i}+(1-\lambda) \gamma_{i}\right)=\lambda U_{i}\left(\alpha_{-i}, \beta_{i}\right)+ (1-\lambda) U_{i}\left(\alpha_{-i}, \gamma_{i}\right) $. Note also that when each $A_{i}$ is finite we have 
+Note that each function $U_{i}$ is **multilinear 多线性函数**. That is, for any mixed strategy profile $\alpha,$ any mixed strategies $\beta_{i}$ and $\gamma_{i}$ of player $i,$ and any number $\lambda \in[0,1],$ we have $U_{i}\left(\alpha_{-i}, \lambda \beta_{i}+(1-\lambda) \gamma_{i}\right)=\lambda U_{i}\left(\alpha_{-i}, \beta_{i}\right)+ (1-\lambda) U_{i}\left(\alpha_{-i}, \gamma_{i}\right) $. Note also that when each $A_{i}$ is finite we have 
 $$
 U_{i}(\alpha)=\sum_{a_{i} \in A_{i}} \alpha_{i}\left(a_{i}\right) U_{i}\left(\alpha_{-i}, e\left(a_{i}\right)\right)
 $$
-for any mixed strategy profile $\alpha$, where $e\left(a_{i}\right)$ is the degenerate mixed strategy of player $i$ that attaches probability one to $a_{i} \in A_{i}$. 
+for any mixed strategy profile $\alpha$, where $e\left(a_{i}\right)$ is the degenerate mixed strategy of player $i$ that attaches probability one to $a_{i} \in A_{i}$.   e表示纯策略选$a_i$
 
 **DEFINITION 32.3**  A **mixed strategy Nash equilibrium of a strategic game** is a Nash equilibrium of its mixed extension.
 
@@ -364,9 +655,16 @@ Suppose that $$\alpha^{*} \in \times_{j \in N} \Delta\left(A_{j}\right)$$ is a m
 
 **Proposition 33.1** Every finite strategic game has a mixed strategy Nash equilibrium.
 
-**LEMMA 33.2** Let $G=\left\langle N,\left(A_{i}\right),\left(u_{i}\right)\right\rangle$ be a finite strategic game. Then $\alpha^{*} \in \times_{i \in N} \Delta\left(A_{i}\right)$ is a mixed strategy Nash equilibrium of $G$ if and only if for every player $i \in N$ every pure strategy in the support of $\alpha_{i}^{*}$ is $a$ best response to $\alpha_{-i}^{*}$
+**LEMMA 33.2** Let $G=\left\langle N,\left(A_{i}\right),\left(u_{i}\right)\right\rangle$ be a finite strategic game. Then $\alpha^{*} \in \times_{i \in N} \Delta\left(A_{i}\right)$ is a mixed strategy Nash equilibrium of $G$ if and only if for every player $i \in N$ every pure strategy in the **support** of $\alpha_{i}^{*}$ is $a$ best response to $\alpha_{-i}^{*}$  
 
-由此可见，支持任何玩家的均衡混合策略的每一个行动都会给该玩家带来相同的报酬。
+由此可见，支撑任何玩家的均衡混合策略的每一个行动都会给该玩家带来相同的报酬。
+
+
+
+support 支撑 ,  $$support(f) = \{ x\in X \mid f(x) \neq 0  \} $$  ,  
+对一个混合策略,  $\alpha_{i}: A_{i} \rightarrow[0,1]$ , 支撑就是 support $\left(\alpha_{i}\right)=\left\{a_{i} \in A_{i} \mid \alpha_{i}\left(a_{i}\right) \neq 0\right\}=\left\{a_{i} \in A_{i} \mid \alpha_{i}\left(a_{i}\right)>0\right\}$   , 就是那些实际选择的纯策略. 
+
+
 
 
 
